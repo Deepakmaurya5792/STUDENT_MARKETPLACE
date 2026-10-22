@@ -1,11 +1,12 @@
-
-import express, { json } from "express";
+import express from "express";
 import cors from "cors";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
+
+dotenv.config();
 
 const app = express();
 
-// Middleware
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -13,9 +14,9 @@ app.use(
   })
 );
 
-app.use(json());
 
-// Health-check route
+app.use(express.json());
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -25,6 +26,12 @@ app.get("/api/health", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+};
+
+startServer();
