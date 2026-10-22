@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
+import collegeRoutes from "./routes/collegeRoutes.js";
 
 dotenv.config();
 
@@ -16,6 +17,8 @@ app.use(
 
 
 app.use(express.json());
+
+app.use("/api/colleges", collegeRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({
