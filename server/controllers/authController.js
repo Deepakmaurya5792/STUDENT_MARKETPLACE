@@ -2,6 +2,7 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import College from "../models/College.js";
+import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   try {
@@ -100,9 +101,7 @@ export const login = async (req, res) => {
     const user = await User.findOne({
       email: email.trim().toLowerCase(),
       status: "active",
-    })
-      .select("+passwordHash")
-      .populate("college", "name slug");
+    }).select("+passwordHash");
 
     if (!user) {
       return res.status(401).json({
@@ -123,6 +122,20 @@ export const login = async (req, res) => {
       });
     }
 
+    const token = jwt.sign(
+      { userId: user._id.toString() },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -142,4 +155,20 @@ export const login = async (req, res) => {
       message: "Login failed",
     });
   }
+};
+
+
+//logout user
+export const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Logout successful",
+  });
 };
