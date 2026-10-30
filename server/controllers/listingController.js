@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Listing from "../models/Listing.js";
+import uploadToCloudinary from "../utils/uploadToCloudinary.js";
+import deleteFromCloudinary from "../utils/deleteFromCloudinary.js";
 
 export const createListing = async (req, res) => {
   try {
@@ -12,24 +14,28 @@ export const createListing = async (req, res) => {
       price,
       rentPeriod,
       exchangeFor,
-      images,
     } = req.body;
 
-    // Basic validation
-    if (
-      !title?.trim() ||
-      !description?.trim() ||
-      !category?.trim() ||
-      !condition ||
-      !listingType
-    ) {
+    if (!title || !description || !category || !condition || !listingType) {
       return res.status(400).json({
         success: false,
         message: "Please provide all required fields",
       });
     }
 
-    // Create listing
+    const files = req.files || [];
+
+    if (files.length > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum 5 images are allowed",
+      });
+    }
+
+    const uploadedImages = await Promise.all(
+      files.map((file) => uploadToCloudinary(file.buffer))
+    );
+
     const listing = await Listing.create({
       title,
       description,
@@ -39,9 +45,7 @@ export const createListing = async (req, res) => {
       price,
       rentPeriod,
       exchangeFor,
-      images: images || [],
-
-      // Automatically assigned from authenticated user
+      images: uploadedImages,
       seller: req.user._id,
       college: req.user.college,
     });
@@ -51,16 +55,8 @@ export const createListing = async (req, res) => {
       message: "Listing created successfully",
       data: listing,
     });
-
   } catch (error) {
-    console.error("Create listing error:", error.message);
-
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
+    console.error("Create listing error:", error);
 
     return res.status(500).json({
       success: false,
@@ -270,7 +266,6 @@ export const deleteListing = async (req, res) => {
       });
     }
 
-    // Find listing owned by the logged-in user
     const listing = await Listing.findOne({
       _id: id,
       seller: req.user._id,
@@ -279,19 +274,28 @@ export const deleteListing = async (req, res) => {
     if (!listing) {
       return res.status(404).json({
         success: false,
-        message: "Listing not found or you are not the owner",
+        message: "Listing not found",
       });
     }
 
+    // Delete images from Cloudinary
+    await Promise.all(
+      listing.images.map((image) =>
+        image.publicId
+          ? deleteFromCloudinary(image.publicId)
+          : Promise.resolve()
+      )
+    );
+
+    // Delete listing from MongoDB
     await Listing.findByIdAndDelete(id);
 
     return res.status(200).json({
       success: true,
-      message: "Listing deleted successfully",
+      message: "Listing and its images deleted successfully",
     });
-
   } catch (error) {
-    console.error("Delete listing error:", error.message);
+    console.error("Delete listing error:", error);
 
     return res.status(500).json({
       success: false,

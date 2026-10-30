@@ -1,5 +1,5 @@
-
 import express from "express";
+import upload from "../middleware/uploadMiddleware.js";
 
 import {
   createListing,
@@ -18,7 +18,12 @@ router.get("/", getAllListings);
 router.get("/:id", getSingleListing);
 
 // Protected routes
-router.post("/", authMiddleware, createListing);
+router.post(
+  "/",
+  authMiddleware,
+  upload.array("images", 5),
+  createListing
+);
 router.patch("/:id", authMiddleware, updateListing);
 router.delete("/:id", authMiddleware, deleteListing);
 
