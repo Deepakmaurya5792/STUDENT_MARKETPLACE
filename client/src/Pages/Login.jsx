@@ -23,15 +23,17 @@ function Login() {
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
+  event.preventDefault();
 
-    try {
+  setError("");
+  setSuccess("");
+  setLoading(true);
+
+  try {
     await login(formData);
 
     setSuccess("Login successful!");
+
     setFormData({
       email: "",
       password: "",
@@ -44,7 +46,8 @@ function Login() {
   } finally {
     setLoading(false);
   }
-  };
+};
+
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10">

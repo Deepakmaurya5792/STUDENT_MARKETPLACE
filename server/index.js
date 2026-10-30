@@ -1,16 +1,18 @@
+import listingRoutes from "./routes/listingRoutes.js";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import "dotenv/config";
+
 import connectDB from "./config/db.js";
+
 import collegeRoutes from "./routes/collegeRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import cookieParser from "cookie-parser";
 import authMiddleware from "./middleware/authMiddleware.js";
-
-dotenv.config();
 
 const app = express();
 
+// Middleware
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -18,24 +20,10 @@ app.use(
   })
 );
 
-
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/colleges", collegeRoutes);
-app.use("/api/auth", authRoutes);
-app.get("/api/auth/me", authMiddleware, (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-    },
-  });
-});
-
+// Health check
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -43,14 +31,47 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Current logged-in user
+app.get(
+  "/api/auth/me",
+  (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+  },
+  authMiddleware,
+  (req, res) => {
+    res.status(200).json({
+      success: true,
+      data: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        college: req.user.college,
+        role: req.user.role,
+      },
+    });
+  }
+);
+
+// API routes
+app.use("/api/colleges", collegeRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/listings", listingRoutes);
+
+// Server configuration
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    await connectDB();
 
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Server startup failed:", error.message);
+    process.exit(1);
+  }
 };
 
 startServer();

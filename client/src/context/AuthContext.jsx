@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
+
 import api from "../services/api";
 
 const AuthContext = createContext(null);
@@ -13,16 +14,25 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = async (shouldThrow = false) => {
     try {
       const response = await api.get("/auth/me", {
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        });
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
+
       setUser(response.data.data);
+
+      return response.data.data;
     } catch (error) {
       setUser(null);
+
+      if (shouldThrow) {
+        throw error;
+      }
+
+      return null;
     } finally {
       setLoading(false);
     }
@@ -33,9 +43,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (credentials) => {
-    const response = await api.post("/auth/login", credentials);
-    await fetchCurrentUser();
-    return response.data;
+    await api.post("/auth/login", credentials);
+
+    const currentUser = await fetchCurrentUser(true);
+
+    if (!currentUser) {
+      throw new Error("Unable to retrieve authenticated user");
+    }
+
+    return currentUser;
   };
 
   const logout = async () => {
@@ -71,3 +87,5 @@ export const useAuth = () => {
 
   return context;
 };
+
+export default AuthContext;
