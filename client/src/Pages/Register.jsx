@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import CollegeSelect from "../components/CollegeSelect";
 
 function Register() {
@@ -31,11 +31,7 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        formData,
-        { withCredentials: true }
-      );
+      const response = await api.post("/auth/register", formData);
 
       setSuccess(response.data.message || "Registration successful!");
 
