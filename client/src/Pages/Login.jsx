@@ -1,12 +1,13 @@
 
 import { useState } from "react";
-import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const { login } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,18 +29,21 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", formData);
+    await login(formData);
 
-      setSuccess(response.data.message || "Login successful!");
-      setFormData({ email: "", password: "" });
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Login failed. Please check your connection and try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    setSuccess("Login successful!");
+    setFormData({
+      email: "",
+      password: "",
+    });
+  } catch (err) {
+    setError(
+      err.response?.data?.message ||
+        "Login failed. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
   };
 
   return (

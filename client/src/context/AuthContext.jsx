@@ -15,7 +15,11 @@ export const AuthProvider = ({ children }) => {
 
   const fetchCurrentUser = async () => {
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get("/auth/me", {
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
       setUser(response.data.data);
     } catch (error) {
       setUser(null);
