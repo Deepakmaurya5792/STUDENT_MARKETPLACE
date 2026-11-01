@@ -187,6 +187,8 @@ export const getSingleListing = async (req, res) => {
 
 
 export const updateListing = async (req, res) => {
+  let newlyUploadedImages = [];
+
   try {
     const { id } = req.params;
 
@@ -197,7 +199,6 @@ export const updateListing = async (req, res) => {
       });
     }
 
-    // Find listing owned by the logged-in user
     const listing = await Listing.findOne({
       _id: id,
       seller: req.user._id,
@@ -221,12 +222,31 @@ export const updateListing = async (req, res) => {
       "exchangeFor",
     ];
 
-    // Update only permitted fields
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         listing[field] = req.body[field];
       }
     });
+
+    // Check total image limit
+    const newFiles = req.files || [];
+    const existingImageCount = listing.images.length;
+
+    if (existingImageCount + newFiles.length > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum 5 images are allowed per listing",
+      });
+    }
+
+    // Upload new images one by one
+    for (const file of newFiles) {
+      const uploadedImage = await uploadToCloudinary(file.buffer);
+      newlyUploadedImages.push(uploadedImage);
+    }
+
+    // Add new images without removing existing ones
+    listing.images.push(...newlyUploadedImages);
 
     await listing.save();
 
@@ -237,7 +257,14 @@ export const updateListing = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Update listing error:", error.message);
+    console.error("Update listing error:", error);
+
+    // Clean up newly uploaded images if update fails
+    await Promise.allSettled(
+      newlyUploadedImages.map((image) =>
+        deleteFromCloudinary(image.publicId)
+      )
+    );
 
     if (error.name === "ValidationError") {
       return res.status(400).json({
@@ -252,7 +279,6 @@ export const updateListing = async (req, res) => {
     });
   }
 };
-
 
 
 export const deleteListing = async (req, res) => {
@@ -300,6 +326,77 @@ export const deleteListing = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete listing",
+    });
+  }
+};
+
+
+export const removeListingImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { publicId } = req.body;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid listing ID",
+      });
+    }
+
+    if (!publicId) {
+      return res.status(400).json({
+        success: false,
+        message: "Image publicId is required",
+      });
+    }
+
+    // Find listing owned by the logged-in user
+    const listing = await Listing.findOne({
+      _id: id,
+      seller: req.user._id,
+    });
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: "Listing not found or you are not the owner",
+      });
+    }
+
+    // Check whether this image belongs to the listing
+    const imageExists = listing.images.some(
+      (image) => image.publicId === publicId
+    );
+
+    if (!imageExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Image not found in this listing",
+      });
+    }
+
+    // Delete image from Cloudinary
+    await deleteFromCloudinary(publicId);
+
+    // Remove image reference from MongoDB
+    listing.images = listing.images.filter(
+      (image) => image.publicId !== publicId
+    );
+
+    await listing.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Image removed successfully",
+      data: listing,
+    });
+
+  } catch (error) {
+    console.error("Remove listing image error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to remove image",
     });
   }
 };

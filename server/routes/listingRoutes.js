@@ -7,6 +7,7 @@ import {
   getSingleListing,
   updateListing,
   deleteListing,
+  removeListingImage,
 } from "../controllers/listingController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
@@ -24,7 +25,17 @@ router.post(
   upload.array("images", 5),
   createListing
 );
-router.patch("/:id", authMiddleware, updateListing);
+router.patch(
+  "/:id",
+  authMiddleware,
+  upload.array("images", 5),
+  updateListing
+);
 router.delete("/:id", authMiddleware, deleteListing);
+router.delete(
+  "/:id/images",
+  authMiddleware,
+  removeListingImage
+);
 
 export default router;
