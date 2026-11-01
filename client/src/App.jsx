@@ -10,6 +10,7 @@ import {
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import CreateListing from "./pages/CreateListing";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -27,10 +28,13 @@ function App() {
         <Link to="/dashboard" className="hover:text-blue-400">
           Dashboard
         </Link>
+
+        <Link to="/create-listing" className="hover:text-blue-400">
+          Create Listing
+        </Link>
       </nav>
 
       <Routes>
-        {/* Default route */}
         <Route
           path="/"
           element={<Navigate to="/login" replace />}
@@ -46,9 +50,13 @@ function App() {
             path="/dashboard"
             element={<Dashboard />}
           />
+
+          <Route
+            path="/create-listing"
+            element={<CreateListing />}
+          />
         </Route>
 
-        {/* Unknown routes */}
         <Route
           path="*"
           element={<Navigate to="/login" replace />}
