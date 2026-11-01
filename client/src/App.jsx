@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateListing from "./pages/CreateListing";
+import Listings from "./pages/Listings";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -32,34 +33,33 @@ function App() {
         <Link to="/create-listing" className="hover:text-blue-400">
           Create Listing
         </Link>
+
+        <Link to="/listings" className="hover:text-blue-400">
+          Marketplace
+        </Link>
       </nav>
 
       <Routes>
         <Route
           path="/"
-          element={<Navigate to="/login" replace />}
+          element={<Navigate to="/listings" replace />}
         />
 
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/listings" element={<Listings />} />
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
-          <Route
-            path="/dashboard"
-            element={<Dashboard />}
-          />
-
-          <Route
-            path="/create-listing"
-            element={<CreateListing />}
-          />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/create-listing" element={<CreateListing />} />
         </Route>
 
+        {/* Unknown routes */}
         <Route
           path="*"
-          element={<Navigate to="/login" replace />}
+          element={<Navigate to="/listings" replace />}
         />
       </Routes>
     </BrowserRouter>
