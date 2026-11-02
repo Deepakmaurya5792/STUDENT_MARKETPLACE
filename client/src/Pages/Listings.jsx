@@ -1,9 +1,14 @@
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getAllListings } from "../services/listingService";
+import { getColleges } from "../services/collegeService";
 
 const Listings = () => {
+  const navigate = useNavigate();
+
   const [listings, setListings] = useState([]);
+  const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -11,7 +16,21 @@ const Listings = () => {
     search: "",
     category: "",
     listingType: "",
+    college: "",
   });
+
+  useEffect(() => {
+    const fetchColleges = async () => {
+      try {
+        const collegesData = await getColleges();
+        setColleges(collegesData || []);
+      } catch (err) {
+        console.error("Failed to fetch colleges:", err);
+      }
+    };
+
+    fetchColleges();
+  }, []);
 
   const fetchListings = async (appliedFilters = {}) => {
     try {
@@ -22,8 +41,7 @@ const Listings = () => {
       setListings(response.data || []);
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-        "Failed to fetch listings"
+        err.response?.data?.message || "Failed to fetch listings"
       );
     } finally {
       setLoading(false);
@@ -58,6 +76,7 @@ const Listings = () => {
       search: "",
       category: "",
       listingType: "",
+      college: "",
     };
 
     setFilters(emptyFilters);
@@ -67,7 +86,6 @@ const Listings = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="mx-auto max-w-7xl">
-
         <h1 className="mb-2 text-3xl font-bold">
           Student Marketplace
         </h1>
@@ -76,10 +94,9 @@ const Listings = () => {
           Discover products listed by students from different colleges.
         </p>
 
-        {/* Search and Filters */}
         <form
           onSubmit={handleSearch}
-          className="mb-8 grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow sm:grid-cols-2 lg:grid-cols-4"
+          className="mb-8 grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow sm:grid-cols-2 lg:grid-cols-5"
         >
           <input
             type="text"
@@ -93,7 +110,7 @@ const Listings = () => {
           <input
             type="text"
             name="category"
-            placeholder="Category (e.g. electronics)"
+            placeholder="Category"
             value={filters.category}
             onChange={handleChange}
             className="rounded-lg border p-3"
@@ -110,6 +127,21 @@ const Listings = () => {
             <option value="rent">Rent</option>
             <option value="exchange">Exchange</option>
             <option value="free">Free</option>
+          </select>
+
+          <select
+            name="college"
+            value={filters.college}
+            onChange={handleChange}
+            className="rounded-lg border p-3"
+          >
+            <option value="">All Colleges</option>
+
+            {colleges.map((college) => (
+              <option key={college._id} value={college._id}>
+                {college.name}
+              </option>
+            ))}
           </select>
 
           <div className="flex gap-2">
@@ -136,9 +168,7 @@ const Listings = () => {
           <p className="py-10 text-center text-red-600">{error}</p>
         ) : listings.length === 0 ? (
           <div className="rounded-xl bg-white p-10 text-center shadow">
-            <h2 className="text-xl font-semibold">
-              No listings found
-            </h2>
+            <h2 className="text-xl font-semibold">No listings found</h2>
             <p className="mt-2 text-gray-500">
               Try changing your search or filters.
             </p>
@@ -148,7 +178,16 @@ const Listings = () => {
             {listings.map((listing) => (
               <div
                 key={listing._id}
-                className="overflow-hidden rounded-xl bg-white shadow transition hover:shadow-lg"
+                onClick={() => navigate(`/listings/${listing._id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate(`/listings/${listing._id}`);
+                  }
+                }}
+                className="cursor-pointer overflow-hidden rounded-xl bg-white shadow transition hover:-translate-y-1 hover:shadow-lg"
               >
                 {listing.images?.length > 0 ? (
                   <img
@@ -188,6 +227,10 @@ const Listings = () => {
                   <span className="mt-3 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs capitalize">
                     {listing.listingType}
                   </span>
+
+                  <p className="mt-3 text-sm font-medium text-blue-600">
+                    View Details →
+                  </p>
                 </div>
               </div>
             ))}

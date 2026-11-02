@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter,
   Routes,
@@ -7,6 +6,7 @@ import {
   Link,
 } from "react-router-dom";
 
+import ListingDetails from "./pages/ListingDetails";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -49,6 +49,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/listings" element={<Listings />} />
+        <Route path="/listings/:id" element={<ListingDetails />} />
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
@@ -61,6 +62,7 @@ function App() {
           path="*"
           element={<Navigate to="/listings" replace />}
         />
+        
       </Routes>
     </BrowserRouter>
   );

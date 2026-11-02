@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { getColleges } from "../services/collegeServices.js";
+import { getColleges } from "../services/collegeService.js";
 
 function CollegeSelect({ value, onChange }) {
   const [colleges, setColleges] = useState([]);
