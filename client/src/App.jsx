@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import CreateListing from "./pages/CreateListing";
 import Listings from "./pages/Listings";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Chat from "./pages/Chat";
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-listing" element={<CreateListing />} />
+          <Route path="/chat/:conversationId" element={<Chat />} />
         </Route>
 
         {/* Unknown routes */}
