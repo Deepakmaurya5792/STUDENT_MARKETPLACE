@@ -14,6 +14,7 @@ import CreateListing from "./pages/CreateListing";
 import Listings from "./pages/Listings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Chat from "./pages/Chat";
+import Conversations from "./pages/Conversations";
 
 function App() {
   return (
@@ -38,6 +39,10 @@ function App() {
         <Link to="/listings" className="hover:text-blue-400">
           Marketplace
         </Link>
+
+        <Link to="/conversations" className="hover:text-blue-400">
+        Messages
+        </Link>
       </nav>
 
       <Routes>
@@ -57,6 +62,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-listing" element={<CreateListing />} />
           <Route path="/chat/:conversationId" element={<Chat />} />
+          <Route path="/conversations" element={<Conversations />} />
         </Route>
 
         {/* Unknown routes */}

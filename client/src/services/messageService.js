@@ -18,7 +18,19 @@ export const sendMessage = async (conversationId, text) => {
 };
 
 // Get messages of a conversation
-export const getMessages = async (conversationId) => {
-  const response = await api.get(`/messages/${conversationId}`);
+export const getMessages = async (conversationId, params = {}) => {
+  const response = await api.get(`/messages/${conversationId}`, {
+    params,
+  });
+
+  return response.data;
+};
+
+
+export const markMessagesRead = async (conversationId) => {
+  const response = await api.patch(
+    `/messages/${conversationId}/read`
+  );
+
   return response.data;
 };

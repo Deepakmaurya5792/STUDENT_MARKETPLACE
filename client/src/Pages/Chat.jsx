@@ -1,11 +1,18 @@
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useLayoutEffect,
+} from "react";
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 import {
   getMessages,
   sendMessage,
+  markMessagesRead,
 } from "../services/messageService";
 
 import socket from "../services/socket";
@@ -18,9 +25,51 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [sending, setSending] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState(null);
   const [error, setError] = useState("");
 
+  const messagesContainerRef = useRef(null);
+
+  const previousScrollRef = useRef(null);
+  const shouldAutoScrollRef = useRef(true);
+  const initialPositionedRef = useRef(false);
+  const loadingOlderRef = useRef(false);
+
+  // Handle scrolling after messages change
+  useLayoutEffect(() => {
+    const container = messagesContainerRef.current;
+
+    if (!container || loading) return;
+
+    // Preserve position when older messages are added
+    if (previousScrollRef.current) {
+      const { scrollHeight, scrollTop } =
+        previousScrollRef.current;
+
+      container.scrollTop =
+        container.scrollHeight - scrollHeight + scrollTop;
+
+      previousScrollRef.current = null;
+      return;
+    }
+
+    // Open directly at the latest message
+    if (!initialPositionedRef.current) {
+      container.scrollTop = container.scrollHeight;
+      initialPositionedRef.current = true;
+      return;
+    }
+
+    // Scroll only when user is near the bottom
+    if (shouldAutoScrollRef.current) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages, loading]);
+
+  // Initialize chat and listen for incoming messages
   useEffect(() => {
     let isMounted = true;
 
@@ -29,30 +78,65 @@ const Chat = () => {
         setLoading(true);
         setError("");
 
-        // Load previous messages
-        const response = await getMessages(conversationId);
+        setMessages([]);
+        setHasMore(false);
+        setNextCursor(null);
+
+        initialPositionedRef.current = false;
+        previousScrollRef.current = null;
+        shouldAutoScrollRef.current = true;
+
+        // Fetch latest 20 messages
+        const response = await getMessages(conversationId, {
+          limit: 20,
+        });
 
         if (!isMounted) return;
 
-        setMessages(response.data || []);
+        setMessages(response.data.messages || []);
+        setHasMore(response.data.hasMore);
+        setNextCursor(response.data.nextCursor);
+
+        // Mark all incoming messages as read
+        await markMessagesRead(conversationId);
+
+        if (!isMounted) return;
 
         // Connect authenticated socket
         if (!socket.connected) {
           socket.connect();
         }
+
       } catch (err) {
         if (isMounted) {
           setError(
-            err.response?.data?.message || "Failed to load messages"
+            err.response?.data?.message ||
+              "Failed to load messages"
           );
         }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    const handleNewMessage = ({ conversationId: receivedId, message }) => {
+    // Handle new incoming messages
+    const handleNewMessage = async ({
+      conversationId: receivedId,
+      message,
+    }) => {
       if (receivedId !== conversationId) return;
+
+      const container = messagesContainerRef.current;
+
+      const isNearBottom = container
+        ? container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight < 100
+        : true;
+
+      shouldAutoScrollRef.current = isNearBottom;
 
       setMessages((prev) => {
         const alreadyExists = prev.some(
@@ -63,6 +147,16 @@ const Chat = () => {
 
         return [...prev, message];
       });
+
+      // Mark incoming messages as read
+      try {
+        await markMessagesRead(conversationId);
+      } catch (err) {
+        console.error(
+          "Failed to mark message as read:",
+          err
+        );
+      }
     };
 
     socket.on("new-message", handleNewMessage);
@@ -75,6 +169,79 @@ const Chat = () => {
     };
   }, [conversationId]);
 
+  // Load older messages when scrolling to top
+  const loadOlderMessages = async () => {
+    if (
+      loadingOlderRef.current ||
+      !hasMore ||
+      !nextCursor ||
+      loading
+    ) {
+      return;
+    }
+
+    const container = messagesContainerRef.current;
+
+    if (!container) return;
+
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    setError("");
+
+    // Save current scroll position
+    previousScrollRef.current = {
+      scrollHeight: container.scrollHeight,
+      scrollTop: container.scrollTop,
+    };
+
+    try {
+      const response = await getMessages(conversationId, {
+        limit: 20,
+        before: nextCursor,
+      });
+
+      const olderMessages = response.data.messages || [];
+
+      setMessages((prev) => {
+        const existingIds = new Set(
+          prev.map((message) => message._id)
+        );
+
+        const uniqueOlderMessages = olderMessages.filter(
+          (message) => !existingIds.has(message._id)
+        );
+
+        return [...uniqueOlderMessages, ...prev];
+      });
+
+      setHasMore(response.data.hasMore);
+      setNextCursor(response.data.nextCursor);
+
+    } catch (err) {
+      previousScrollRef.current = null;
+
+      setError(
+        err.response?.data?.message ||
+          "Failed to load older messages"
+      );
+    } finally {
+      loadingOlderRef.current = false;
+      setLoadingOlder(false);
+    }
+  };
+
+  // Detect when user scrolls near the top
+  const handleScroll = () => {
+    const container = messagesContainerRef.current;
+
+    if (!container) return;
+
+    if (container.scrollTop <= 50) {
+      loadOlderMessages();
+    }
+  };
+
+  // Send a message
   const handleSend = async (e) => {
     e.preventDefault();
 
@@ -84,7 +251,13 @@ const Chat = () => {
       setSending(true);
       setError("");
 
-      const response = await sendMessage(conversationId, text.trim());
+      const response = await sendMessage(
+        conversationId,
+        text.trim()
+      );
+
+      // Sender should see their message immediately
+      shouldAutoScrollRef.current = true;
 
       setMessages((prev) => {
         const alreadyExists = prev.some(
@@ -97,9 +270,11 @@ const Chat = () => {
       });
 
       setText("");
+
     } catch (err) {
       setError(
-        err.response?.data?.message || "Failed to send message"
+        err.response?.data?.message ||
+          "Failed to send message"
       );
     } finally {
       setSending(false);
@@ -110,8 +285,11 @@ const Chat = () => {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="mx-auto flex h-[80vh] max-w-3xl flex-col rounded-xl bg-white shadow-lg">
 
+        {/* Header */}
         <div className="flex items-center justify-between border-b p-4">
-          <h1 className="text-xl font-bold">Chat</h1>
+          <h1 className="text-xl font-bold">
+            Chat
+          </h1>
 
           <button
             onClick={() => navigate("/listings")}
@@ -121,63 +299,92 @@ const Chat = () => {
           </button>
         </div>
 
+        {/* Error */}
         {error && (
           <p className="bg-red-50 p-3 text-center text-sm text-red-600">
             {error}
           </p>
         )}
 
-        <div className="flex-1 space-y-4 overflow-y-auto p-5">
+        {/* Messages container */}
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 space-y-4 overflow-y-auto p-5"
+        >
           {loading ? (
             <p className="text-center text-gray-500">
               Loading messages...
             </p>
-          ) : messages.length === 0 ? (
-            <p className="text-center text-gray-500">
-              No messages yet. Start the conversation!
-            </p>
           ) : (
-            messages.map((message) => {
-              const senderId =
-                message.sender?._id || message.sender;
+            <>
+              {/* Older messages loading indicator */}
+              {loadingOlder && (
+                <p className="text-center text-sm text-gray-500">
+                  Loading older messages...
+                </p>
+              )}
 
-              const isMine =
-                senderId?.toString() === user?._id?.toString() ||
-                senderId?.toString() === user?.id?.toString();
+              {messages.length === 0 ? (
+                <p className="text-center text-gray-500">
+                  No messages yet. Start the conversation!
+                </p>
+              ) : (
+                messages.map((message) => {
+                  const senderId =
+                    message.sender?._id || message.sender;
 
-              return (
-                <div
-                  key={message._id}
-                  className={`flex ${
-                    isMine ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-                      isMine
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-800"
-                    }`}
-                  >
-                    <p className="mb-1 text-xs font-semibold opacity-75">
-                      {isMine ? "You" : message.sender?.name || "Other user"}
-                    </p>
+                  const isMine =
+                    senderId?.toString() ===
+                      user?._id?.toString() ||
+                    senderId?.toString() ===
+                      user?.id?.toString();
 
-                    <p className="break-words">{message.text}</p>
+                  return (
+                    <div
+                      key={message._id}
+                      className={`flex ${
+                        isMine
+                          ? "justify-end"
+                          : "justify-start"
+                      }`}
+                    >
+                      <div
+                        className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                          isMine
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-800"
+                        }`}
+                      >
+                        <p className="mb-1 text-xs font-semibold opacity-75">
+                          {isMine
+                            ? "You"
+                            : message.sender?.name ||
+                              "Other user"}
+                        </p>
 
-                    <p className="mt-1 text-right text-xs opacity-70">
-                      {new Date(message.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              );
-            })
+                        <p className="break-words">
+                          {message.text}
+                        </p>
+
+                        <p className="mt-1 text-right text-xs opacity-70">
+                          {new Date(
+                            message.createdAt
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </>
           )}
         </div>
 
+        {/* Send message form */}
         <form
           onSubmit={handleSend}
           className="flex gap-3 border-t p-4"
@@ -199,6 +406,7 @@ const Chat = () => {
             {sending ? "Sending..." : "Send"}
           </button>
         </form>
+
       </div>
     </div>
   );
