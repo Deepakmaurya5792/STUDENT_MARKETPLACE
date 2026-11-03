@@ -4,11 +4,14 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
 import connectDB from "./config/db.js";
 import User from "./models/User.js";
+import Conversation from "./models/Conversation.js";
+import Message from "./models/Message.js";
 
 import collegeRoutes from "./routes/collegeRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -21,7 +24,10 @@ import authMiddleware from "./middleware/authMiddleware.js";
 const app = express();
 const httpServer = createServer(app);
 
-// Socket.IO configuration
+// ============================================
+// SOCKET.IO CONFIGURATION
+// ============================================
+
 const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:5173",
@@ -29,10 +35,13 @@ const io = new Server(httpServer, {
   },
 });
 
-// Make Socket.IO available inside Express controllers
+// Make Socket.IO available inside controllers
 app.set("io", io);
 
-// Authenticate socket connections using JWT cookie
+// ============================================
+// SOCKET AUTHENTICATION
+// ============================================
+
 io.use(async (socket, next) => {
   try {
     const cookieHeader = socket.handshake.headers.cookie || "";
@@ -48,7 +57,10 @@ io.use(async (socket, next) => {
 
     const token = decodeURIComponent(tokenCookie.substring(6));
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
     const user = await User.findOne({
       _id: decoded.userId,
@@ -62,24 +74,114 @@ io.use(async (socket, next) => {
     socket.userId = user._id.toString();
 
     next();
+
   } catch (error) {
     next(new Error("Invalid or expired authentication token"));
   }
 });
 
-// Socket connection
+// ============================================
+// SOCKET CONNECTION
+// ============================================
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.userId);
 
   // Each user joins their private room
   socket.join(socket.userId);
 
+  // ==========================================
+  // MESSAGE DELIVERY ACKNOWLEDGEMENT
+  // ==========================================
+
+  socket.on("message-delivered", async (data) => {
+    try {
+      const { messageId, conversationId } = data || {};
+
+      // Validate IDs
+      if (
+        !mongoose.Types.ObjectId.isValid(messageId) ||
+        !mongoose.Types.ObjectId.isValid(conversationId)
+      ) {
+        return;
+      }
+
+      // Verify that the connected user belongs
+      // to this conversation
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        $or: [
+          { buyer: socket.userId },
+          { seller: socket.userId },
+        ],
+      });
+
+      if (!conversation) {
+        return;
+      }
+
+      // Find the message and ensure it belongs
+      // to this conversation and was sent by
+      // the other participant
+      const message = await Message.findOne({
+        _id: messageId,
+        conversation: conversationId,
+        sender: { $ne: socket.userId },
+      });
+
+      if (!message) {
+        return;
+      }
+
+      // Identify original sender
+      const senderId = message.sender.toString();
+
+      // Update delivery timestamp only once
+      const result = await Message.updateOne(
+        {
+          _id: messageId,
+          conversation: conversationId,
+          deliveredAt: null,
+        },
+        {
+          $set: {
+            deliveredAt: new Date(),
+          },
+        }
+      );
+
+      // Notify sender only when delivery
+      // status was actually updated
+      if (result.modifiedCount > 0) {
+        const updatedMessage = await Message.findById(
+          messageId
+        ).select("deliveredAt");
+
+        io.to(senderId).emit("message-delivered", {
+          conversationId: conversationId.toString(),
+          messageId: messageId.toString(),
+          deliveredAt: updatedMessage.deliveredAt,
+        });
+      }
+
+    } catch (error) {
+      console.error("Message delivery error:", error);
+    }
+  });
+
+  // ==========================================
+  // DISCONNECT
+  // ==========================================
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.userId);
   });
 });
 
-// Middleware
+// ============================================
+// EXPRESS MIDDLEWARE
+// ============================================
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -90,7 +192,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Health check
+// ============================================
+// HEALTH CHECK
+// ============================================
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -98,7 +203,10 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Current logged-in user
+// ============================================
+// CURRENT LOGGED-IN USER
+// ============================================
+
 app.get(
   "/api/auth/me",
   (req, res, next) => {
@@ -120,14 +228,20 @@ app.get(
   }
 );
 
-// API routes
+// ============================================
+// API ROUTES
+// ============================================
+
 app.use("/api/colleges", collegeRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
 
-// Server configuration
+// ============================================
+// SERVER CONFIGURATION
+// ============================================
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
@@ -137,6 +251,7 @@ const startServer = async () => {
     httpServer.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
+
   } catch (error) {
     console.error("Server startup failed:", error.message);
     process.exit(1);

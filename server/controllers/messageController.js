@@ -1,9 +1,11 @@
-
 import mongoose from "mongoose";
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 
-// Send a message
+// ============================================
+// SEND MESSAGE
+// ============================================
+
 export const sendMessage = async (req, res) => {
   try {
     const { conversationId, text } = req.body;
@@ -30,6 +32,7 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+    // Verify conversation participant
     const conversation = await Conversation.findOne({
       _id: conversationId,
       $or: [
@@ -45,6 +48,7 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+    // Save message
     const message = await Message.create({
       conversation: conversationId,
       sender: senderId,
@@ -68,10 +72,12 @@ export const sendMessage = async (req, res) => {
     // Emit real-time message to recipient
     const io = req.app.get("io");
 
-    io.to(recipientId).emit("new-message", {
-      conversationId: conversationId.toString(),
-      message: populatedMessage,
-    });
+    if (io) {
+      io.to(recipientId).emit("new-message", {
+        conversationId: conversationId.toString(),
+        message: populatedMessage,
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -90,7 +96,10 @@ export const sendMessage = async (req, res) => {
 };
 
 
-// Get messages with cursor-based pagination
+// ============================================
+// GET MESSAGES WITH CURSOR PAGINATION
+// ============================================
+
 export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -104,7 +113,7 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    // Get pagination parameters
+    // Pagination parameters
     const { before } = req.query;
 
     let limit = Number.parseInt(req.query.limit, 10);
@@ -137,7 +146,7 @@ export const getMessages = async (req, res) => {
       conversation: conversationId,
     };
 
-    // If cursor exists, find the cursor message
+    // Cursor-based pagination
     if (before) {
       if (!mongoose.Types.ObjectId.isValid(before)) {
         return res.status(400).json({
@@ -158,7 +167,7 @@ export const getMessages = async (req, res) => {
         });
       }
 
-      // Fetch messages older than the cursor message
+      // Fetch messages older than cursor
       query.$or = [
         {
           createdAt: { $lt: cursorMessage.createdAt },
@@ -179,27 +188,14 @@ export const getMessages = async (req, res) => {
     // Check whether older messages exist
     const hasMore = fetchedMessages.length > limit;
 
-    // Keep only the requested number
+    // Keep requested number of messages
     const pageMessages = fetchedMessages.slice(0, limit);
 
-    const messageIds = pageMessages.map((message) => message._id);
+    const messageIds = pageMessages.map(
+      (message) => message._id
+    );
 
-    // Mark only the fetched incoming messages as read
-    if (messageIds.length > 0) {
-      await Message.updateMany(
-        {
-          _id: { $in: messageIds },
-          conversation: conversationId,
-          sender: { $ne: userId },
-          isRead: false,
-        },
-        {
-          $set: { isRead: true },
-        }
-      );
-    }
-
-    // Fetch complete messages after updating read status
+    // Fetch complete messages WITHOUT changing read status
     const messages = await Message.find({
       _id: { $in: messageIds },
     })
@@ -209,7 +205,7 @@ export const getMessages = async (req, res) => {
     // Reverse to show oldest first
     messages.reverse();
 
-    // The oldest message in this page becomes the next cursor
+    // Oldest message becomes the next cursor
     const nextCursor =
       messages.length > 0
         ? messages[0]._id.toString()
@@ -236,14 +232,16 @@ export const getMessages = async (req, res) => {
 };
 
 
-
-// Mark all incoming messages in a conversation as read
+// ============================================
+// MARK CONVERSATION MESSAGES AS READ
+// ============================================
 
 export const markConversationRead = async (req, res) => {
   try {
     const { conversationId } = req.params;
     const userId = req.user._id;
 
+    // Validate conversation ID
     if (!mongoose.Types.ObjectId.isValid(conversationId)) {
       return res.status(400).json({
         success: false,
@@ -251,6 +249,7 @@ export const markConversationRead = async (req, res) => {
       });
     }
 
+    // Verify conversation participant
     const conversation = await Conversation.findOne({
       _id: conversationId,
       $or: [
@@ -266,6 +265,7 @@ export const markConversationRead = async (req, res) => {
       });
     }
 
+    // Mark all incoming unread messages as read
     const result = await Message.updateMany(
       {
         conversation: conversationId,
@@ -273,11 +273,13 @@ export const markConversationRead = async (req, res) => {
         isRead: false,
       },
       {
-        $set: { isRead: true },
+        $set: {
+          isRead: true,
+        },
       }
     );
 
-    // Notify the other participant that their messages were read
+    // Notify sender that messages were read
     if (result.modifiedCount > 0) {
       const otherUserId =
         conversation.buyer.toString() === userId.toString()
@@ -286,15 +288,18 @@ export const markConversationRead = async (req, res) => {
 
       const io = req.app.get("io");
 
-      io.to(otherUserId).emit("messages-read", {
-        conversationId: conversationId.toString(),
-        readBy: userId.toString(),
-      });
+      if (io) {
+        io.to(otherUserId).emit("messages-read", {
+          conversationId: conversationId.toString(),
+          readBy: userId.toString(),
+        });
+      }
     }
 
     return res.status(200).json({
       success: true,
       message: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
     });
 
   } catch (error) {

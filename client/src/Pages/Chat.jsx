@@ -38,7 +38,38 @@ const Chat = () => {
   const initialPositionedRef = useRef(false);
   const loadingOlderRef = useRef(false);
 
-  // Handle scrolling after messages change
+  const currentUserId = (user?._id || user?.id)?.toString();
+
+  // ============================================
+  // ACKNOWLEDGE INCOMING MESSAGES AS DELIVERED
+  // ============================================
+
+  const acknowledgeMessages = (incomingMessages) => {
+    if (!socket.connected || !currentUserId) return;
+
+    incomingMessages.forEach((message) => {
+      const senderId = (
+        message.sender?._id || message.sender
+      )?.toString();
+
+      // Only acknowledge messages received from others
+      if (
+        senderId &&
+        senderId !== currentUserId &&
+        !message.deliveredAt
+      ) {
+        socket.emit("message-delivered", {
+          messageId: message._id,
+          conversationId,
+        });
+      }
+    });
+  };
+
+  // ============================================
+  // HANDLE SCROLLING AFTER MESSAGES CHANGE
+  // ============================================
+
   useLayoutEffect(() => {
     const container = messagesContainerRef.current;
 
@@ -69,7 +100,10 @@ const Chat = () => {
     }
   }, [messages, loading]);
 
-  // Initialize chat and listen for incoming messages
+  // ============================================
+  // INITIALIZE CHAT AND SOCKET LISTENERS
+  // ============================================
+
   useEffect(() => {
     let isMounted = true;
 
@@ -86,6 +120,11 @@ const Chat = () => {
         previousScrollRef.current = null;
         shouldAutoScrollRef.current = true;
 
+        // Connect authenticated socket
+        if (!socket.connected) {
+          socket.connect();
+        }
+
         // Fetch latest 20 messages
         const response = await getMessages(conversationId, {
           limit: 20,
@@ -93,19 +132,19 @@ const Chat = () => {
 
         if (!isMounted) return;
 
-        setMessages(response.data.messages || []);
+        const initialMessages = response.data.messages || [];
+
+        setMessages(initialMessages);
         setHasMore(response.data.hasMore);
         setNextCursor(response.data.nextCursor);
+
+        // Acknowledge previously received messages
+        acknowledgeMessages(initialMessages);
 
         // Mark all incoming messages as read
         await markMessagesRead(conversationId);
 
         if (!isMounted) return;
-
-        // Connect authenticated socket
-        if (!socket.connected) {
-          socket.connect();
-        }
 
       } catch (err) {
         if (isMounted) {
@@ -121,7 +160,10 @@ const Chat = () => {
       }
     };
 
-    // Handle new incoming messages
+    // ==========================================
+    // HANDLE NEW INCOMING MESSAGE
+    // ==========================================
+
     const handleNewMessage = async ({
       conversationId: receivedId,
       message,
@@ -148,6 +190,14 @@ const Chat = () => {
         return [...prev, message];
       });
 
+      // Acknowledge delivery to server
+      if (socket.connected) {
+        socket.emit("message-delivered", {
+          messageId: message._id,
+          conversationId,
+        });
+      }
+
       // Mark incoming messages as read
       try {
         await markMessagesRead(conversationId);
@@ -159,17 +209,82 @@ const Chat = () => {
       }
     };
 
+    // ==========================================
+    // HANDLE DELIVERY RECEIPT
+    // ==========================================
+
+    const handleMessageDelivered = ({
+      conversationId: receivedId,
+      messageId,
+      deliveredAt,
+    }) => {
+      if (receivedId !== conversationId) return;
+
+      setMessages((prev) =>
+        prev.map((message) =>
+          message._id === messageId
+            ? {
+                ...message,
+                deliveredAt,
+              }
+            : message
+        )
+      );
+    };
+
+    // ==========================================
+    // HANDLE READ RECEIPT
+    // ==========================================
+
+    const handleMessagesRead = ({
+      conversationId: receivedId,
+      readBy,
+    }) => {
+      if (receivedId !== conversationId) return;
+
+      // Only update receipts when another user
+      // has read our messages
+      if (readBy === currentUserId) return;
+
+      setMessages((prev) =>
+        prev.map((message) => {
+          const senderId = (
+            message.sender?._id || message.sender
+          )?.toString();
+
+          if (senderId === currentUserId) {
+            return {
+              ...message,
+              isRead: true,
+            };
+          }
+
+          return message;
+        })
+      );
+    };
+
+    // Register socket listeners
     socket.on("new-message", handleNewMessage);
+    socket.on("message-delivered", handleMessageDelivered);
+    socket.on("messages-read", handleMessagesRead);
 
     initializeChat();
 
     return () => {
       isMounted = false;
-      socket.off("new-message", handleNewMessage);
-    };
-  }, [conversationId]);
 
-  // Load older messages when scrolling to top
+      socket.off("new-message", handleNewMessage);
+      socket.off("message-delivered", handleMessageDelivered);
+      socket.off("messages-read", handleMessagesRead);
+    };
+
+  }, [conversationId, currentUserId]);
+
+  // ============================================
+  // LOAD OLDER MESSAGES
+  // ============================================
+
   const loadOlderMessages = async () => {
     if (
       loadingOlderRef.current ||
@@ -214,6 +329,9 @@ const Chat = () => {
         return [...uniqueOlderMessages, ...prev];
       });
 
+      // Acknowledge any previously undelivered messages
+      acknowledgeMessages(olderMessages);
+
       setHasMore(response.data.hasMore);
       setNextCursor(response.data.nextCursor);
 
@@ -230,7 +348,10 @@ const Chat = () => {
     }
   };
 
-  // Detect when user scrolls near the top
+  // ============================================
+  // DETECT SCROLL NEAR TOP
+  // ============================================
+
   const handleScroll = () => {
     const container = messagesContainerRef.current;
 
@@ -241,7 +362,10 @@ const Chat = () => {
     }
   };
 
-  // Send a message
+  // ============================================
+  // SEND MESSAGE
+  // ============================================
+
   const handleSend = async (e) => {
     e.preventDefault();
 
@@ -280,6 +404,38 @@ const Chat = () => {
       setSending(false);
     }
   };
+
+  // ============================================
+  // MESSAGE STATUS INDICATOR
+  // ============================================
+
+  const getMessageStatus = (message) => {
+    if (message.isRead) {
+      return {
+        label: "Read",
+        symbol: "✓✓",
+        color: "text-blue-300",
+      };
+    }
+
+    if (message.deliveredAt) {
+      return {
+        label: "Delivered",
+        symbol: "✓✓",
+        color: "text-gray-300",
+      };
+    }
+
+    return {
+      label: "Sent",
+      symbol: "✓",
+      color: "text-gray-300",
+    };
+  };
+
+  // ============================================
+  // UI
+  // ============================================
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -331,14 +487,16 @@ const Chat = () => {
                 </p>
               ) : (
                 messages.map((message) => {
-                  const senderId =
-                    message.sender?._id || message.sender;
+                  const senderId = (
+                    message.sender?._id || message.sender
+                  )?.toString();
 
                   const isMine =
-                    senderId?.toString() ===
-                      user?._id?.toString() ||
-                    senderId?.toString() ===
-                      user?.id?.toString();
+                    senderId === currentUserId;
+
+                  const status = isMine
+                    ? getMessageStatus(message)
+                    : null;
 
                   return (
                     <div
@@ -367,14 +525,25 @@ const Chat = () => {
                           {message.text}
                         </p>
 
-                        <p className="mt-1 text-right text-xs opacity-70">
-                          {new Date(
-                            message.createdAt
-                          ).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                        <div className="mt-1 flex items-center justify-end gap-2">
+                          <span className="text-xs opacity-70">
+                            {new Date(
+                              message.createdAt
+                            ).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+
+                          {isMine && (
+                            <span
+                              title={status.label}
+                              className={`text-xs font-bold ${status.color}`}
+                            >
+                              {status.symbol}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );

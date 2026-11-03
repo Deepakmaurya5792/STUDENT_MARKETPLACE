@@ -22,6 +22,11 @@ const messageSchema = new mongoose.Schema(
       maxlength: 2000,
     },
 
+    deliveredAt: {
+      type: Date,
+      default: null,
+    },
+
     isRead: {
       type: Boolean,
       default: false,
@@ -30,7 +35,6 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Efficiently retrieve messages in chronological order
 messageSchema.index({ conversation: 1, createdAt: 1 });
 
 const Message = mongoose.model("Message", messageSchema);
