@@ -18,6 +18,16 @@ export const getSingleListing = async (id) => {
   return response.data;
 };
 
+
+export const getMyListings = async (params = {}) => {
+  const response = await api.get("/listings/my-listings", {
+    params,
+  });
+
+  return response.data;
+};
+
+
 // Update listing
 export const updateListing = async (id, listingData) => {
   const response = await api.patch(`/listings/${id}`, listingData);
@@ -35,5 +45,14 @@ export const removeListingImage = async (id, publicId) => {
   const response = await api.delete(`/listings/${id}/images`, {
     data: { publicId },
   });
+  return response.data;
+};
+
+
+export const updateListingStatus = async (id, status) => {
+  const response = await api.patch(`/listings/${id}/status`, {
+    status,
+  });
+
   return response.data;
 };

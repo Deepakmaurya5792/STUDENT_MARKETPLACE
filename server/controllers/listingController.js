@@ -144,6 +144,76 @@ export const getAllListings = async (req, res) => {
 };
 
 
+export const getMyListings = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit, 10) || 10)
+    );
+
+    const skip = (page - 1) * limit;
+
+    const filter = {
+      seller: req.user._id,
+    };
+
+    // Optional status filter
+    const allowedStatuses = [
+      "active",
+      "reserved",
+      "completed",
+      "inactive",
+    ];
+
+    if (req.query.status) {
+      if (!allowedStatuses.includes(req.query.status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid listing status",
+        });
+      }
+
+      filter.status = req.query.status;
+    }
+
+    const [listings, totalListings] = await Promise.all([
+      Listing.find(filter)
+        .populate("seller", "name profileImage")
+        .populate("college", "name slug")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Listing.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalListings / limit);
+
+    return res.status(200).json({
+      success: true,
+      pagination: {
+        currentPage: page,
+        limit,
+        totalListings,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+      data: listings,
+    });
+  } catch (error) {
+    console.error("Get my listings error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch your listings",
+    });
+  }
+};
+
+
 
 export const getSingleListing = async (req, res) => {
   try {
@@ -397,6 +467,69 @@ export const removeListingImage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to remove image",
+    });
+  }
+};
+
+
+export const updateListingStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate listing ID
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid listing ID",
+      });
+    }
+
+    // Allowed statuses
+    const allowedStatuses = [
+      "active",
+      "reserved",
+      "completed",
+      "inactive",
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid listing status",
+      });
+    }
+
+    // Find listing belonging to logged-in user
+    const listing = await Listing.findOne({
+      _id: id,
+      seller: req.user._id,
+    });
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        message: "Listing not found or you are not the owner",
+      });
+    }
+
+    // Update status
+    listing.status = status;
+
+    await listing.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Listing status updated successfully",
+      data: listing,
+    });
+
+  } catch (error) {
+    console.error("Update listing status error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update listing status",
     });
   }
 };

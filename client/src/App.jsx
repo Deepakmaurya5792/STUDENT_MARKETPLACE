@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter,
   Routes,
@@ -12,6 +13,10 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateListing from "./pages/CreateListing";
 import Listings from "./pages/Listings";
+import Profile from "./pages/Profile";
+import MyListings from "./pages/MyListings";
+import EditListing from "./pages/EditListing";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import Chat from "./pages/Chat";
 import Conversations from "./pages/Conversations";
@@ -19,7 +24,8 @@ import Conversations from "./pages/Conversations";
 function App() {
   return (
     <BrowserRouter>
-      <nav className="flex items-center justify-center gap-8 bg-gray-900 p-4 text-white">
+      <nav className="flex flex-wrap items-center justify-center gap-8 bg-gray-900 p-4 text-white">
+
         <Link to="/login" className="hover:text-blue-400">
           Login
         </Link>
@@ -41,11 +47,17 @@ function App() {
         </Link>
 
         <Link to="/conversations" className="hover:text-blue-400">
-        Messages
+          Messages
         </Link>
+
+        <Link to="/profile" className="hover:text-blue-400">
+          Profile
+        </Link>
+
       </nav>
 
       <Routes>
+
         <Route
           path="/"
           element={<Navigate to="/listings" replace />}
@@ -59,10 +71,31 @@ function App() {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
+
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/create-listing" element={<CreateListing />} />
-          <Route path="/chat/:conversationId" element={<Chat />} />
-          <Route path="/conversations" element={<Conversations />} />
+
+          <Route
+            path="/create-listing"
+            element={<CreateListing />}
+          />
+
+          <Route
+            path="/chat/:conversationId"
+            element={<Chat />}
+          />
+
+          <Route
+            path="/conversations"
+            element={<Conversations />}
+          />
+
+          <Route
+            path="/profile"
+            element={<Profile />}
+          />
+          <Route path="/my-listings" element={<MyListings />} />
+          <Route path="/edit-listing/:id" element={<EditListing />} />
+
         </Route>
 
         {/* Unknown routes */}
@@ -70,7 +103,7 @@ function App() {
           path="*"
           element={<Navigate to="/listings" replace />}
         />
-        
+
       </Routes>
     </BrowserRouter>
   );
