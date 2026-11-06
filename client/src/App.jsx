@@ -16,7 +16,7 @@ import Listings from "./pages/Listings";
 import Profile from "./pages/Profile";
 import MyListings from "./pages/MyListings";
 import EditListing from "./pages/EditListing";
-
+import NotificationBell from "./pages/NotificationBell";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Chat from "./pages/Chat";
 import Conversations from "./pages/Conversations";
@@ -53,7 +53,11 @@ function App() {
         <Link to="/profile" className="hover:text-blue-400">
           Profile
         </Link>
+        <Link to="/conversations" className="hover:text-blue-400">
+          Messages
+        </Link>
 
+        <NotificationBell />
       </nav>
 
       <Routes>

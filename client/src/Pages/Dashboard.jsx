@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import api from "../services/api";
+import socket from "../services/socket";
 import { useAuth } from "../context/AuthContext";
 import { getMyListings } from "../services/listingService";
 import { getMyProfile } from "../services/profileService";
@@ -12,6 +14,7 @@ const Dashboard = () => {
 
   const [profile, setProfile] = useState(null);
   const [recentListings, setRecentListings] = useState([]);
+  const [recentConversations, setRecentConversations] = useState([]);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -25,10 +28,22 @@ const Dashboard = () => {
   const [loggingOut, setLoggingOut] = useState(false);
 
   // ============================================
+  // UNREAD MESSAGE COUNT
+  // ============================================
+
+  const unreadMessages = recentConversations.reduce(
+    (total, conversation) =>
+      total + (conversation.unreadCount || 0),
+    0
+  );
+
+  // ============================================
   // FETCH DASHBOARD DATA
   // ============================================
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
@@ -40,7 +55,10 @@ const Dashboard = () => {
           getMyListings({ page: 1, limit: 1, status: "active" }),
           getMyListings({ page: 1, limit: 1, status: "reserved" }),
           getMyListings({ page: 1, limit: 1, status: "completed" }),
+          api.get("/conversations"),
         ]);
+
+        if (!isMounted) return;
 
         const [
           profileResult,
@@ -48,6 +66,7 @@ const Dashboard = () => {
           activeResult,
           reservedResult,
           completedResult,
+          conversationsResult,
         ] = results;
 
         if (profileResult.status === "fulfilled") {
@@ -59,7 +78,8 @@ const Dashboard = () => {
 
           setStats((prev) => ({
             ...prev,
-            total: recentResult.value.pagination?.totalListings || 0,
+            total:
+              recentResult.value.pagination?.totalListings || 0,
           }));
         }
 
@@ -87,18 +107,113 @@ const Dashboard = () => {
           }));
         }
 
+        if (conversationsResult.status === "fulfilled") {
+          setRecentConversations(
+            conversationsResult.value.data.data || []
+          );
+        }
+
         if (results.every((result) => result.status === "rejected")) {
           setError("Unable to load dashboard data.");
         }
       } catch (err) {
-        setError("Something went wrong while loading dashboard.");
+        if (isMounted) {
+          setError("Something went wrong while loading dashboard.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
+    // ============================================
+    // SOCKET: NEW MESSAGE
+    // ============================================
+
+    const handleNewMessage = ({ conversationId, message }) => {
+      setRecentConversations((prev) => {
+        const updated = prev.map((conversation) => {
+          if (conversation._id !== conversationId) {
+            return conversation;
+          }
+
+          return {
+            ...conversation,
+            lastMessage: message,
+            unreadCount: (conversation.unreadCount || 0) + 1,
+            updatedAt: message.createdAt || new Date().toISOString(),
+          };
+        });
+
+        return updated.sort(
+          (a, b) =>
+            new Date(b.updatedAt) - new Date(a.updatedAt)
+        );
+      });
+    };
+
+    // ============================================
+    // SOCKET: MESSAGES READ
+    // ============================================
+
+    const handleMessagesRead = ({ conversationId }) => {
+      setRecentConversations((prev) =>
+        prev.map((conversation) =>
+          conversation._id === conversationId
+            ? { ...conversation, unreadCount: 0 }
+            : conversation
+        )
+      );
+    };
+
+    socket.on("new-message", handleNewMessage);
+    socket.on("messages-read", handleMessagesRead);
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
     fetchDashboardData();
+
+    return () => {
+      isMounted = false;
+
+      socket.off("new-message", handleNewMessage);
+      socket.off("messages-read", handleMessagesRead);
+    };
   }, []);
+
+  // ============================================
+  // GET OTHER USER
+  // ============================================
+
+  const getOtherUser = (conversation) => {
+    const currentUserId = user?.id || user?._id;
+
+    const isBuyer =
+      conversation.buyer?._id?.toString() ===
+      currentUserId?.toString();
+
+    return isBuyer
+      ? conversation.seller
+      : conversation.buyer;
+  };
+
+  // ============================================
+  // FORMAT DATE
+  // ============================================
+
+  const formatDate = (date) => {
+    if (!date) return "";
+
+    return new Date(date).toLocaleString([], {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   // ============================================
   // LOGOUT
@@ -180,6 +295,12 @@ const Dashboard = () => {
       value: stats.completed,
       color: "bg-purple-100 text-purple-700",
       icon: "✓",
+    },
+    {
+      title: "Unread Messages",
+      value: unreadMessages,
+      color: "bg-red-100 text-red-700",
+      icon: "💬",
     },
   ];
 
@@ -297,10 +418,10 @@ const Dashboard = () => {
 
         <section className="mb-8">
           <h2 className="mb-5 text-xl font-bold text-gray-800">
-            Listing Overview
+            Overview
           </h2>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {statCards.map((card) => (
               <div
@@ -380,8 +501,14 @@ const Dashboard = () => {
 
             <button
               onClick={() => navigate("/conversations")}
-              className="rounded-xl bg-white p-5 text-left shadow transition hover:shadow-lg"
+              className="relative rounded-xl bg-white p-5 text-left shadow transition hover:shadow-lg"
             >
+              {unreadMessages > 0 && (
+                <span className="absolute right-4 top-4 rounded-full bg-red-600 px-2 py-1 text-xs font-bold text-white">
+                  {unreadMessages}
+                </span>
+              )}
+
               <span className="text-2xl">💬</span>
               <h3 className="mt-3 font-bold text-gray-800">
                 Messages
@@ -392,6 +519,130 @@ const Dashboard = () => {
             </button>
 
           </div>
+        </section>
+
+        {/* RECENT CONVERSATIONS */}
+
+        <section className="mb-8 rounded-xl bg-white p-6 shadow">
+
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">
+                Recent Conversations
+              </h2>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Your latest chats with other students.
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate("/conversations")}
+              className="text-sm font-semibold text-blue-600 hover:underline"
+            >
+              View All →
+            </button>
+          </div>
+
+          {recentConversations.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-gray-500">
+                You don't have any conversations yet.
+              </p>
+
+              <button
+                onClick={() => navigate("/listings")}
+                className="mt-4 rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
+              >
+                Explore Marketplace
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+
+              {recentConversations.slice(0, 4).map((conversation) => {
+                const otherUser = getOtherUser(conversation);
+                const listing = conversation.listing;
+                const lastMessage = conversation.lastMessage;
+                const unreadCount = conversation.unreadCount || 0;
+
+                return (
+                  <div
+                    key={conversation._id}
+                    onClick={() =>
+                      navigate(`/chat/${conversation._id}`)
+                    }
+                    className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition hover:bg-gray-50 sm:gap-4 sm:p-4"
+                  >
+
+                    {/* PROFILE IMAGE */}
+
+                    {otherUser?.profileImage ? (
+                      <img
+                        src={otherUser.profileImage}
+                        alt={otherUser.name}
+                        className="h-12 w-12 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
+                        {otherUser?.name?.charAt(0)?.toUpperCase() || "?"}
+                      </div>
+                    )}
+
+                    {/* CONVERSATION DETAILS */}
+
+                    <div className="min-w-0 flex-1">
+
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+
+                        <h3 className="truncate font-semibold text-gray-800">
+                          {otherUser?.name || "Unknown User"}
+                        </h3>
+
+                        <span className="shrink-0 text-xs text-gray-400">
+                          {formatDate(
+                            lastMessage?.createdAt ||
+                            conversation.updatedAt
+                          )}
+                        </span>
+
+                      </div>
+
+                      <p className="truncate text-xs text-gray-500">
+                        {listing?.title || "Listing unavailable"}
+                      </p>
+
+                      <p
+                        className={`mt-1 truncate text-sm ${
+                          unreadCount > 0
+                            ? "font-semibold text-gray-900"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {lastMessage?.text || "Start a conversation"}
+                      </p>
+
+                    </div>
+
+                    {/* UNREAD BADGE */}
+
+                    {unreadCount > 0 && (
+                      <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
+                        {unreadCount}
+                      </span>
+                    )}
+
+                    <span className="hidden shrink-0 text-sm font-medium text-blue-600 sm:block">
+                      Open →
+                    </span>
+
+                  </div>
+                );
+              })}
+
+            </div>
+          )}
+
         </section>
 
         {/* RECENT LISTINGS */}

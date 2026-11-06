@@ -19,6 +19,7 @@ import listingRoutes from "./routes/listingRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 import authMiddleware from "./middleware/authMiddleware.js";
 
@@ -239,6 +240,7 @@ app.use("/api/listings", listingRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ============================================
 // SERVER CONFIGURATION
