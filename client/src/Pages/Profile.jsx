@@ -31,10 +31,7 @@ const Profile = () => {
 
   const fileInputRef = useRef(null);
 
-  // ============================================
   // FETCH PROFILE
-  // ============================================
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -61,10 +58,7 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  // ============================================
   // HANDLE INPUT CHANGES
-  // ============================================
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -74,10 +68,7 @@ const Profile = () => {
     }));
   };
 
-  // ============================================
   // UPDATE PROFILE
-  // ============================================
-
   const handleSave = async (e) => {
     e.preventDefault();
 
@@ -97,7 +88,6 @@ const Profile = () => {
         bio: response.data.bio || "",
       });
 
-      // Update global authentication state
       updateAuthUser({
         name: response.data.name,
       });
@@ -114,10 +104,7 @@ const Profile = () => {
     }
   };
 
-  // ============================================
   // UPLOAD PROFILE IMAGE
-  // ============================================
-
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
 
@@ -155,7 +142,6 @@ const Profile = () => {
           response.data.profileImagePublicId,
       }));
 
-      // Update global authentication state
       updateAuthUser({
         profileImage: response.data.profileImage,
       });
@@ -172,10 +158,7 @@ const Profile = () => {
     }
   };
 
-  // ============================================
   // REMOVE PROFILE IMAGE
-  // ============================================
-
   const handleRemoveImage = async () => {
     if (!profile?.profileImage) return;
 
@@ -198,7 +181,6 @@ const Profile = () => {
         profileImagePublicId: "",
       }));
 
-      // Update global authentication state
       updateAuthUser({
         profileImage: "",
       });
@@ -214,10 +196,7 @@ const Profile = () => {
     }
   };
 
-  // ============================================
   // CANCEL EDITING
-  // ============================================
-
   const handleCancel = () => {
     setFormData({
       name: profile.name || "",
@@ -230,276 +209,154 @@ const Profile = () => {
     setError("");
   };
 
-  // ============================================
-  // LOADING
-  // ============================================
+  // INPUT STYLES
+  const inputStyle = (editable = true) =>
+    `w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition ${
+      editing && editable
+        ? "border-gray-200 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        : "border-gray-100 bg-gray-50 text-gray-600"
+    }`;
 
+  // LOADING
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Loading profile...</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-sm text-gray-500">
+          Loading profile...
+        </p>
       </div>
     );
   }
 
+  // PROFILE NOT FOUND
   if (!profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-sm text-red-600">
           {error || "Profile not found"}
         </p>
       </div>
     );
   }
 
-  // ============================================
-  // UI
-  // ============================================
-
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-10">
-      <div className="mx-auto max-w-3xl">
+    <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-4xl">
 
-        <h1 className="mb-6 text-3xl font-bold text-gray-800">
-          My Profile
-        </h1>
+        {/* PAGE HEADER */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+            My Profile
+          </h1>
 
-        <div className="rounded-2xl bg-white p-6 shadow-md sm:p-8">
+          <p className="mt-1 text-sm text-gray-500">
+            Manage your personal information and account details.
+          </p>
+        </div>
 
-          {/* PROFILE IMAGE */}
+        {/* PROFILE CARD */}
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-          <div className="mb-8 flex flex-col items-center">
+          {/* PROFILE HEADER */}
+          <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-5 py-6 sm:px-8">
 
-            <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-gray-200 bg-gray-100">
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
 
-              {profile.profileImage ? (
-                <img
-                  src={profile.profileImage}
-                  alt="Profile"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-5xl font-bold text-gray-400">
-                  {profile.name?.charAt(0).toUpperCase()}
+              {/* PROFILE IMAGE WITH HOVER + ICON */}
+              <div className="relative h-24 w-24 shrink-0">
+
+                <div className="group relative h-full w-full overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-sm">
+
+                  {profile.profileImage ? (
+                    <img
+                      src={profile.profileImage}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-blue-600">
+                      {profile.name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                  )}
+
+                  {/* CHANGE PHOTO BUTTON */}
+                  <button
+                    type="button"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Change profile photo"
+                    title="Change profile photo"
+                    className="absolute inset-0 flex items-center justify-center bg-black/0 text-white transition-all duration-200 hover:bg-black/45 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-2xl font-medium text-blue-600 shadow-md opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                      +
+                    </span>
+                  </button>
                 </div>
-              )}
 
-            </div>
+                {/* HIDDEN FILE INPUT */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
 
-            <div className="mt-4 flex flex-wrap justify-center gap-3">
+              {/* USER INFORMATION */}
+              <div className="min-w-0 flex-1 text-center sm:text-left">
+                <h2 className="truncate text-xl font-bold text-gray-900">
+                  {profile.name}
+                </h2>
 
-              <button
-                type="button"
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                {uploading ? "Uploading..." : "Change Picture"}
-              </button>
+                <p className="mt-1 truncate text-sm text-gray-500">
+                  {profile.email}
+                </p>
 
+                <p className="mt-1 text-xs text-gray-500">
+                  {profile.college?.name || "College not available"}
+                </p>
+
+                <span className="mt-2 inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-medium capitalize text-blue-700">
+                  {profile.role || "Student"}
+                </span>
+              </div>
+
+              {/* REMOVE PHOTO */}
               {profile.profileImage && (
                 <button
                   type="button"
                   disabled={uploading}
                   onClick={handleRemoveImage}
-                  className="rounded-lg border border-red-500 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
                 >
-                  Remove Picture
+                  {uploading ? "Please wait..." : "Remove Photo"}
                 </button>
               )}
-
             </div>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-
-            <p className="mt-2 text-xs text-gray-500">
-              JPEG, PNG or WebP. Maximum 5 MB.
+            <p className="mt-3 text-center text-xs text-gray-400 sm:text-left">
+              Click the photo to change it · JPEG, PNG or WebP · Maximum 5 MB
             </p>
-
           </div>
 
-          {/* STATUS MESSAGES */}
+          {/* FORM CONTENT */}
+          <div className="p-5 sm:p-8">
 
-          {error && (
-            <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              {error}
-            </p>
-          )}
-
-          {success && (
-            <p className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">
-              {success}
-            </p>
-          )}
-
-          {/* PROFILE FORM */}
-
-          <form onSubmit={handleSave}>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-
-              {/* NAME */}
-
+            {/* SECTION HEADER */}
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
+                <h3 className="text-base font-semibold text-gray-900">
+                  Personal Information
+                </h3>
 
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  disabled={!editing}
-                  required
-                  className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500 disabled:bg-gray-100"
-                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Your personal and academic details.
+                </p>
               </div>
 
-              {/* EMAIL */}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-
-                <input
-                  type="email"
-                  value={profile.email || ""}
-                  disabled
-                  className="w-full rounded-lg border bg-gray-100 px-4 py-3 text-gray-500"
-                />
-              </div>
-
-              {/* COLLEGE */}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  College
-                </label>
-
-                <input
-                  type="text"
-                  value={profile.college?.name || ""}
-                  disabled
-                  className="w-full rounded-lg border bg-gray-100 px-4 py-3 text-gray-500"
-                />
-              </div>
-
-              {/* BRANCH */}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Branch
-                </label>
-
-                <input
-                  type="text"
-                  name="branch"
-                  value={formData.branch}
-                  onChange={handleChange}
-                  disabled={!editing}
-                  placeholder="Enter your branch"
-                  className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500 disabled:bg-gray-100"
-                />
-              </div>
-
-              {/* ACADEMIC YEAR */}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Academic Year
-                </label>
-
-                <select
-                  name="academicYear"
-                  value={formData.academicYear}
-                  onChange={handleChange}
-                  disabled={!editing}
-                  className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500 disabled:bg-gray-100"
-                >
-                  <option value="">Select year</option>
-
-                  {[1, 2, 3, 4, 5, 6].map((year) => (
-                    <option key={year} value={year}>
-                      Year {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* ROLE */}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Account Role
-                </label>
-
-                <input
-                  type="text"
-                  value={profile.role || ""}
-                  disabled
-                  className="w-full rounded-lg border bg-gray-100 px-4 py-3 capitalize text-gray-500"
-                />
-              </div>
-
-            </div>
-
-            {/* BIO */}
-
-            <div className="mt-5">
-
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Bio
-              </label>
-
-              <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
-                disabled={!editing}
-                maxLength={300}
-                rows={4}
-                placeholder="Tell something about yourself..."
-                className="w-full resize-none rounded-lg border px-4 py-3 outline-none focus:border-blue-500 disabled:bg-gray-100"
-              />
-
-              <p className="mt-1 text-right text-xs text-gray-500">
-                {formData.bio.length}/300
-              </p>
-
-            </div>
-
-            {/* ACTION BUTTONS */}
-
-            <div className="mt-7 flex justify-end gap-3">
-
-              {editing ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    disabled={saving}
-                    className="rounded-lg border px-5 py-2.5 text-gray-700 hover:bg-gray-100"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-white hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {saving ? "Saving..." : "Save Changes"}
-                  </button>
-                </>
-              ) : (
+              {!editing && (
                 <button
                   type="button"
                   onClick={() => {
@@ -507,16 +364,179 @@ const Profile = () => {
                     setError("");
                     setSuccess("");
                   }}
-                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-white hover:bg-blue-700"
+                  className="rounded-lg border border-blue-200 px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50"
                 >
                   Edit Profile
                 </button>
               )}
-
             </div>
 
-          </form>
+            {/* STATUS MESSAGES */}
+            {error && (
+              <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                {error}
+              </p>
+            )}
 
+            {success && (
+              <p className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">
+                {success}
+              </p>
+            )}
+
+            {/* PROFILE FORM */}
+            <form onSubmit={handleSave}>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+
+                {/* NAME */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Full Name
+                  </label>
+
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    disabled={!editing}
+                    required
+                    className={inputStyle()}
+                  />
+                </div>
+
+                {/* EMAIL */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Email Address
+                  </label>
+
+                  <input
+                    type="email"
+                    value={profile.email || ""}
+                    disabled
+                    className={inputStyle(false)}
+                  />
+                </div>
+
+                {/* COLLEGE */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    College
+                  </label>
+
+                  <input
+                    type="text"
+                    value={profile.college?.name || ""}
+                    disabled
+                    className={inputStyle(false)}
+                  />
+                </div>
+
+                {/* BRANCH */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Branch
+                  </label>
+
+                  <input
+                    type="text"
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
+                    disabled={!editing}
+                    placeholder="Enter your branch"
+                    className={inputStyle()}
+                  />
+                </div>
+
+                {/* ACADEMIC YEAR */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Academic Year
+                  </label>
+
+                  <select
+                    name="academicYear"
+                    value={formData.academicYear}
+                    onChange={handleChange}
+                    disabled={!editing}
+                    className={inputStyle()}
+                  >
+                    <option value="">Select year</option>
+
+                    {[1, 2, 3, 4, 5, 6].map((year) => (
+                      <option key={year} value={year}>
+                        Year {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* ROLE */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Account Role
+                  </label>
+
+                  <input
+                    type="text"
+                    value={profile.role || ""}
+                    disabled
+                    className={`${inputStyle(false)} capitalize`}
+                  />
+                </div>
+              </div>
+
+              {/* BIO */}
+              <div className="mt-5">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700">
+                    Bio
+                  </label>
+
+                  <span className="text-xs text-gray-400">
+                    {formData.bio.length}/300
+                  </span>
+                </div>
+
+                <textarea
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  disabled={!editing}
+                  maxLength={300}
+                  rows={3}
+                  placeholder="Tell something about yourself..."
+                  className={`${inputStyle()} resize-none`}
+                />
+              </div>
+
+              {/* FORM ACTIONS */}
+              {editing && (
+                <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-gray-100 pt-5">
+
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={saving}
+                    className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
       </div>
     </div>

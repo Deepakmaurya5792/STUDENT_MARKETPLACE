@@ -18,7 +18,6 @@ const MyListings = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
   const [status, setStatus] = useState("");
 
   const [pagination, setPagination] = useState({
@@ -29,14 +28,8 @@ const MyListings = () => {
     hasPrevPage: false,
   });
 
-  // ============================================
   // FETCH MY LISTINGS
-  // ============================================
-
-  const fetchMyListings = async (
-    page = 1,
-    selectedStatus = status
-  ) => {
+  const fetchMyListings = async (page = 1, selectedStatus = status) => {
     try {
       setLoading(true);
       setError("");
@@ -68,10 +61,7 @@ const MyListings = () => {
     fetchMyListings(1, "");
   }, []);
 
-  // ============================================
   // STATUS FILTER
-  // ============================================
-
   const handleStatusChange = (e) => {
     const selectedStatus = e.target.value;
 
@@ -81,10 +71,7 @@ const MyListings = () => {
     fetchMyListings(1, selectedStatus);
   };
 
-  // ============================================
   // PAGINATION
-  // ============================================
-
   const handlePageChange = (page) => {
     fetchMyListings(page);
 
@@ -94,10 +81,7 @@ const MyListings = () => {
     });
   };
 
-  // ============================================
   // DELETE LISTING
-  // ============================================
-
   const handleDelete = async (listingId) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this listing? This action cannot be undone."
@@ -130,10 +114,7 @@ const MyListings = () => {
     }
   };
 
-  // ============================================
   // UPDATE LISTING STATUS
-  // ============================================
-
   const handleUpdateStatus = async (listingId, newStatus) => {
     try {
       setUpdatingStatusId(listingId);
@@ -142,8 +123,6 @@ const MyListings = () => {
 
       await updateListingStatus(listingId, newStatus);
 
-      // Refresh current filter so the listing moves
-      // to the correct status category.
       await fetchMyListings(1, status);
 
       setSuccess(
@@ -159,182 +138,104 @@ const MyListings = () => {
     }
   };
 
-  // ============================================
   // STATUS COLORS
-  // ============================================
-
   const getStatusStyle = (listingStatus) => {
     switch (listingStatus) {
       case "active":
-        return "bg-green-100 text-green-700";
+        return "bg-green-50 text-green-700";
 
       case "reserved":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-yellow-50 text-yellow-700";
 
       case "completed":
-        return "bg-blue-100 text-blue-700";
+        return "bg-blue-50 text-blue-700";
 
       case "inactive":
-        return "bg-gray-200 text-gray-700";
+        return "bg-gray-100 text-gray-600";
 
       default:
         return "bg-gray-100 text-gray-600";
     }
   };
 
-  // ============================================
-  // STATUS MANAGEMENT BUTTONS
-  // ============================================
+  // STATUS OPTIONS
+  const getStatusOptions = (listing) => {
+    switch (listing.status) {
+      case "active":
+        return [
+          { value: "reserved", label: "Mark as Reserved" },
+          { value: "completed", label: "Mark as Completed" },
+          { value: "inactive", label: "Deactivate Listing" },
+        ];
 
-  const renderStatusActions = (listing) => {
-    const isUpdating = updatingStatusId === listing._id;
+      case "reserved":
+        return [
+          { value: "active", label: "Make Active" },
+          { value: "completed", label: "Mark as Completed" },
+          { value: "inactive", label: "Deactivate Listing" },
+        ];
 
-    return (
-      <div className="mt-3 space-y-2">
+      case "inactive":
+        return [
+          { value: "active", label: "Reactivate Listing" },
+        ];
 
-        {listing.status === "active" && (
-          <>
-            <button
-              disabled={isUpdating}
-              onClick={() =>
-                handleUpdateStatus(listing._id, "reserved")
-              }
-              className="w-full rounded-lg bg-yellow-500 py-2 text-sm text-white hover:bg-yellow-600 disabled:opacity-50"
-            >
-              Mark as Reserved
-            </button>
-
-            <button
-              disabled={isUpdating}
-              onClick={() =>
-                handleUpdateStatus(listing._id, "completed")
-              }
-              className="w-full rounded-lg bg-green-600 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
-            >
-              Mark as Completed
-            </button>
-
-            <button
-              disabled={isUpdating}
-              onClick={() =>
-                handleUpdateStatus(listing._id, "inactive")
-              }
-              className="w-full rounded-lg bg-gray-600 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
-            >
-              Deactivate Listing
-            </button>
-          </>
-        )}
-
-        {listing.status === "reserved" && (
-          <>
-            <button
-              disabled={isUpdating}
-              onClick={() =>
-                handleUpdateStatus(listing._id, "active")
-              }
-              className="w-full rounded-lg bg-blue-600 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              Make Active
-            </button>
-
-            <button
-              disabled={isUpdating}
-              onClick={() =>
-                handleUpdateStatus(listing._id, "completed")
-              }
-              className="w-full rounded-lg bg-green-600 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
-            >
-              Mark as Completed
-            </button>
-
-            <button
-              disabled={isUpdating}
-              onClick={() =>
-                handleUpdateStatus(listing._id, "inactive")
-              }
-              className="w-full rounded-lg bg-gray-600 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
-            >
-              Deactivate Listing
-            </button>
-          </>
-        )}
-
-        {listing.status === "inactive" && (
-          <button
-            disabled={isUpdating}
-            onClick={() =>
-              handleUpdateStatus(listing._id, "active")
-            }
-            className="w-full rounded-lg bg-blue-600 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-          >
-            Reactivate Listing
-          </button>
-        )}
-
-        {isUpdating && (
-          <p className="text-center text-xs text-gray-500">
-            Updating status...
-          </p>
-        )}
-
-      </div>
-    );
+      default:
+        return [];
+    }
   };
 
-  // ============================================
-  // LOADING
-  // ============================================
+  // PRICE
+  const getPrice = (listing) => {
+    if (listing.listingType === "free") {
+      return "Free";
+    }
 
+    return `₹${listing.price}`;
+  };
+
+  // LOADING
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">
-          Loading your listings...
-        </p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-gray-500">Loading your listings...</p>
       </div>
     );
   }
 
-  // ============================================
-  // UI
-  // ============================================
-
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-7xl">
 
         {/* HEADER */}
-
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
               My Listings
             </h1>
 
-            <p className="mt-2 text-gray-600">
+            <p className="mt-1 text-sm text-gray-500">
               Manage all the products you have listed.
             </p>
           </div>
 
           <button
             onClick={() => navigate("/create-listing")}
-            className="rounded-lg bg-blue-600 px-5 py-3 text-white hover:bg-blue-700"
+            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
             + Create Listing
           </button>
         </div>
 
-        {/* STATUS FILTER AND TOTAL */}
-
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl bg-white p-5 shadow">
+        {/* FILTER AND TOTAL */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
 
           <div>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs font-medium text-gray-500">
               Total Listings
             </p>
 
-            <p className="text-2xl font-bold text-gray-800">
+            <p className="text-2xl font-bold text-gray-900">
               {pagination.totalListings}
             </p>
           </div>
@@ -342,7 +243,7 @@ const MyListings = () => {
           <select
             value={status}
             onChange={handleStatusChange}
-            className="rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm outline-none transition focus:border-blue-500"
           >
             <option value="">All Listings</option>
             <option value="active">Active</option>
@@ -350,105 +251,74 @@ const MyListings = () => {
             <option value="completed">Completed</option>
             <option value="inactive">Inactive</option>
           </select>
-
         </div>
 
-        {/* STATUS MESSAGES */}
-
+        {/* ERROR */}
         {error && (
-          <p className="mb-5 rounded-lg bg-red-100 p-3 text-red-700">
+          <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
             {error}
           </p>
         )}
 
+        {/* SUCCESS */}
         {success && (
-          <p className="mb-5 rounded-lg bg-green-100 p-3 text-green-700">
+          <p className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">
             {success}
           </p>
         )}
 
         {/* EMPTY STATE */}
-
         {listings.length === 0 ? (
-          <div className="rounded-xl bg-white p-10 text-center shadow">
-            <h2 className="text-xl font-semibold text-gray-800">
+          <div className="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800">
               No listings found
             </h2>
 
-            <p className="mt-2 text-gray-500">
+            <p className="mt-2 text-sm text-gray-500">
               You haven't created any listings with this status.
             </p>
 
             <button
               onClick={() => navigate("/create-listing")}
-              className="mt-5 rounded-lg bg-blue-600 px-5 py-3 text-white hover:bg-blue-700"
+              className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
             >
               Create Your First Listing
             </button>
           </div>
         ) : (
           <>
-            {/* LISTING CARDS */}
+            {/* LISTING GRID */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {listings.map((listing) => {
+                const isDeleting = deletingId === listing._id;
+                const isUpdating =
+                  updatingStatusId === listing._id;
 
-              {listings.map((listing) => (
-                <div
-                  key={listing._id}
-                  className="overflow-hidden rounded-xl bg-white shadow transition hover:-translate-y-1 hover:shadow-lg"
-                >
+                const statusOptions = getStatusOptions(listing);
 
-                  {/* IMAGE */}
+                return (
+                  <div
+                    key={listing._id}
+                    className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    {/* IMAGE */}
+                    <div className="relative">
+                      {listing.images?.length > 0 ? (
+                        <img
+                          src={listing.images[0].url}
+                          alt={listing.title}
+                          className="h-40 w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-40 items-center justify-center bg-gray-100 text-sm text-gray-400">
+                          No Image Available
+                        </div>
+                      )}
 
-                  {listing.images?.length > 0 ? (
-                    <img
-                      src={listing.images[0].url}
-                      alt={listing.title}
-                      className="h-52 w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-52 items-center justify-center bg-gray-200 text-gray-500">
-                      No Image Available
-                    </div>
-                  )}
-
-                  <div className="p-4">
-
-                    {/* TITLE */}
-
-                    <h2 className="truncate text-lg font-semibold">
-                      {listing.title}
-                    </h2>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                      {listing.category}
-                    </p>
-
-                    {/* PRICE */}
-
-                    <p className="mt-3 text-xl font-bold text-blue-600">
-                      {listing.listingType === "free"
-                        ? "Free"
-                        : `₹${listing.price}`}
-                    </p>
-
-                    {listing.listingType === "rent" && (
-                      <p className="mt-1 text-sm text-gray-500">
-                        Per {listing.rentPeriod}
-                      </p>
-                    )}
-
-                    {/* LISTING TYPE */}
-
-                    <span className="mt-3 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs capitalize">
-                      {listing.listingType}
-                    </span>
-
-                    {/* STATUS */}
-
-                    <div className="mt-4">
+                      {/* STATUS BADGE */}
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${getStatusStyle(
+                        className={`absolute left-3 top-3 rounded-lg px-3 py-1.5 text-xs font-semibold capitalize shadow-sm ${getStatusStyle(
                           listing.status
                         )}`}
                       >
@@ -456,69 +326,144 @@ const MyListings = () => {
                       </span>
                     </div>
 
-                    {/* COLLEGE */}
+                    {/* CARD CONTENT */}
+                    <div className="p-3">
 
-                    <p className="mt-4 text-sm text-gray-600">
-                      {listing.college?.name}
-                    </p>
+                      {/* CATEGORY */}
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        {listing.category}
+                      </p>
 
-                    {/* ACTION BUTTONS */}
+                      {/* TITLE */}
+                      <h2 className="truncate text-base font-bold text-gray-900">
+                        {listing.title}
+                      </h2>
 
-                    <div className="mt-4 space-y-2">
+                      {/* TAGS */}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs capitalize text-gray-600">
+                          {listing.listingType === "sale"
+                            ? "For Sale"
+                            : listing.listingType}
+                        </span>
 
-                      {listing.status === "active" && (
-                        <>
+                        {listing.condition && (
+                          <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs capitalize text-gray-600">
+                            {listing.condition.replace("-", " ")}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* PRICE */}
+                      <p className="mt-3 text-xl font-bold text-gray-900">
+                        {getPrice(listing)}
+                      </p>
+
+                      {listing.listingType === "rent" && (
+                        <p className="text-xs text-gray-500">
+                          Per {listing.rentPeriod}
+                        </p>
+                      )}
+
+                      {/* COLLEGE */}
+                      <div className="mt-3 flex items-start gap-2 border-t border-gray-100 pt-3">
+                        <span className="text-gray-400">♧</span>
+
+                        <p className="line-clamp-1 text-xs text-gray-500">
+                          {listing.college?.name ||
+                            "College not available"}
+                        </p>
+                      </div>
+
+                      {/* ACTIONS */}
+                      <div className="mt-4 space-y-2">
+
+                        {/* VIEW AND EDIT */}
+                        <div className="flex gap-2">
                           <button
                             onClick={() =>
                               navigate(`/listings/${listing._id}`)
                             }
-                            className="w-full rounded-lg border border-blue-600 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                            className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-50"
                           >
-                            View Details
+                            View
                           </button>
 
-                          <button
-                            onClick={() =>
-                              navigate(`/edit-listing/${listing._id}`)
-                            }
-                            className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                          {listing.status === "active" ? (
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/edit-listing/${listing._id}`
+                                )
+                              }
+                              className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                            >
+                              Edit
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="flex-1 cursor-not-allowed rounded-xl bg-gray-100 py-2 text-sm font-medium text-gray-400"
+                            >
+                              Editing unavailable
+                            </button>
+                          )}
+                        </div>
+
+                        {/* STATUS DROPDOWN */}
+                        {statusOptions.length > 0 && (
+                          <select
+                            value=""
+                            disabled={isUpdating || isDeleting}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+
+                              if (newStatus) {
+                                handleUpdateStatus(
+                                  listing._id,
+                                  newStatus
+                                );
+                              }
+                            }}
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-500 disabled:opacity-50"
                           >
-                            Edit Listing
-                          </button>
-                        </>
-                      )}
+                            <option value="">
+                              {isUpdating
+                                ? "Updating status..."
+                                : "Change Status"}
+                            </option>
 
-                      {/* DELETE */}
+                            {statusOptions.map((option) => (
+                              <option
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
 
-                      <button
-                        onClick={() => handleDelete(listing._id)}
-                        disabled={
-                          deletingId === listing._id ||
-                          updatingStatusId === listing._id
-                        }
-                        className="w-full rounded-lg border border-red-500 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                      >
-                        {deletingId === listing._id
-                          ? "Deleting..."
-                          : "Delete Listing"}
-                      </button>
-
-                      {/* STATUS MANAGEMENT */}
-
-                      {renderStatusActions(listing)}
-
+                        {/* DELETE */}
+                        <button
+                          onClick={() => handleDelete(listing._id)}
+                          disabled={isDeleting || isUpdating}
+                          className="w-full rounded-xl border border-red-100 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                        >
+                          {isDeleting
+                            ? "Deleting..."
+                            : "Delete Listing"}
+                        </button>
+                      </div>
                     </div>
-
                   </div>
-                </div>
-              ))}
-
+                );
+              })}
             </div>
 
             {/* PAGINATION */}
-
             {pagination.totalPages > 1 && (
-              <div className="mt-10 flex items-center justify-center gap-4">
+              <div className="mt-8 flex items-center justify-center gap-4">
 
                 <button
                   disabled={!pagination.hasPrevPage}
@@ -527,12 +472,12 @@ const MyListings = () => {
                       pagination.currentPage - 1
                     )
                   }
-                  className="rounded-lg border bg-white px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Previous
                 </button>
 
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-600">
                   Page {pagination.currentPage} of{" "}
                   {pagination.totalPages}
                 </span>
@@ -544,17 +489,14 @@ const MyListings = () => {
                       pagination.currentPage + 1
                     )
                   }
-                  className="rounded-lg border bg-white px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next
                 </button>
-
               </div>
             )}
-
           </>
         )}
-
       </div>
     </div>
   );

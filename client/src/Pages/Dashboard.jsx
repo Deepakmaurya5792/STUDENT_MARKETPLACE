@@ -127,9 +127,7 @@ const Dashboard = () => {
       }
     };
 
-    // ============================================
     // SOCKET: NEW MESSAGE
-    // ============================================
 
     const handleNewMessage = ({ conversationId, message }) => {
       setRecentConversations((prev) => {
@@ -153,9 +151,7 @@ const Dashboard = () => {
       });
     };
 
-    // ============================================
     // SOCKET: MESSAGES READ
-    // ============================================
 
     const handleMessagesRead = ({ conversationId }) => {
       setRecentConversations((prev) =>
@@ -189,7 +185,7 @@ const Dashboard = () => {
   // ============================================
 
   const getOtherUser = (conversation) => {
-    const currentUserId = user?.id || user?._id;
+    const currentUserId = user?._id || user?.id;
 
     const isBuyer =
       conversation.buyer?._id?.toString() ===
@@ -216,6 +212,26 @@ const Dashboard = () => {
   };
 
   // ============================================
+  // FORMAT PRICE
+  // ============================================
+
+  const formatPrice = (listing) => {
+    if (listing.listingType === "free") {
+      return "Free";
+    }
+
+    if (listing.price == null) {
+      return "Price unavailable";
+    }
+
+    return `₹${listing.price}${
+      listing.listingType === "rent" && listing.rentPeriod
+        ? ` / ${listing.rentPeriod}`
+        : ""
+    }`;
+  };
+
+  // ============================================
   // LOGOUT
   // ============================================
 
@@ -231,34 +247,36 @@ const Dashboard = () => {
   };
 
   // ============================================
-  // FORMAT PRICE
-  // ============================================
-
-  const formatPrice = (listing) => {
-    if (listing.listingType === "free") {
-      return "Free";
-    }
-
-    return `₹${listing.price}`;
-  };
-
-  // ============================================
   // LOADING
   // ============================================
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <p className="text-lg text-gray-500">
-          Loading your dashboard...
-        </p>
-      </div>
+      <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-7xl animate-pulse space-y-6">
+          <div className="h-44 rounded-3xl bg-gray-200" />
+
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-28 rounded-2xl bg-gray-200"
+              />
+            ))}
+          </div>
+
+          <div className="h-64 rounded-2xl bg-gray-200" />
+        </div>
+      </main>
     );
   }
 
   // ============================================
-  // DASHBOARD UI
+  // USER INFORMATION
   // ============================================
+
+  const studentName =
+    profile?.name || user?.name || "Student";
 
   const collegeName =
     profile?.college?.name ||
@@ -268,185 +286,250 @@ const Dashboard = () => {
   const profileImage =
     profile?.profileImage || user?.profileImage;
 
-  const studentName =
-    profile?.name || user?.name || "Student";
-
   const statCards = [
     {
       title: "Total Listings",
       value: stats.total,
-      color: "bg-blue-100 text-blue-700",
       icon: "📦",
+      color: "bg-blue-50 text-blue-700",
     },
     {
       title: "Active Listings",
       value: stats.active,
-      color: "bg-green-100 text-green-700",
       icon: "🟢",
+      color: "bg-green-50 text-green-700",
     },
     {
       title: "Reserved",
       value: stats.reserved,
-      color: "bg-yellow-100 text-yellow-700",
       icon: "⏳",
+      color: "bg-amber-50 text-amber-700",
     },
     {
       title: "Completed",
       value: stats.completed,
-      color: "bg-purple-100 text-purple-700",
       icon: "✓",
+      color: "bg-purple-50 text-purple-700",
     },
     {
       title: "Unread Messages",
       value: unreadMessages,
-      color: "bg-red-100 text-red-700",
       icon: "💬",
+      color: "bg-red-50 text-red-700",
     },
   ];
 
+  // ============================================
+  // DASHBOARD UI
+  // ============================================
+
   return (
-    <main className="min-h-screen bg-gray-100 p-4 sm:p-8">
+    <main className="min-h-screen bg-slate-50 px-4 py-7 sm:px-6 lg:py-10">
       <div className="mx-auto max-w-7xl">
 
-        {/* WELCOME SECTION */}
+        {/* PAGE HEADING */}
 
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-5 rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-700 p-6 text-white shadow-lg sm:p-8">
+        <div className="mb-7">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
+            Student Marketplace
+          </p>
 
-          <div>
-            <p className="text-blue-100">
-              Student Marketplace
-            </p>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900">
+            Dashboard
+          </h1>
 
-            <h1 className="mt-2 text-3xl font-bold">
-              Welcome, {studentName}!
-            </h1>
-
-            <p className="mt-2 text-blue-100">
-              Manage your listings and explore your marketplace.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-
-            {profileImage ? (
-              <img
-                src={profileImage}
-                alt="Profile"
-                className="h-16 w-16 rounded-full border-4 border-white/30 object-cover"
-              />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl font-bold">
-                {studentName.charAt(0).toUpperCase()}
-              </div>
-            )}
-
-            <button
-              onClick={() => navigate("/profile")}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
-            >
-              My Profile
-            </button>
-
-          </div>
+          <p className="mt-2 text-sm text-gray-500">
+            Manage your products, conversations and account.
+          </p>
         </div>
 
         {/* ERROR */}
 
         {error && (
-          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+          <div className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        {/* ACCOUNT INFORMATION */}
+        {/* WELCOME CARD */}
 
-        <section className="mb-8 rounded-xl bg-white p-6 shadow">
-          <h2 className="mb-5 text-xl font-bold text-gray-800">
-            Student Information
-          </h2>
+        <section className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 p-6 text-white shadow-sm sm:p-8">
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-white/10" />
+          <div className="pointer-events-none absolute -bottom-28 right-40 h-64 w-64 rounded-full bg-white/10" />
 
-            <div>
-              <p className="text-sm text-gray-500">Full Name</p>
-              <p className="mt-1 font-semibold text-gray-800">
-                {studentName}
+          <div className="relative flex flex-wrap items-center justify-between gap-6">
+
+            <div className="max-w-xl">
+              <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-blue-50">
+                Your campus marketplace
+              </span>
+
+              <h2 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                Welcome back, {studentName}!
+              </h2>
+
+              <p className="mt-3 max-w-lg text-sm leading-6 text-blue-100 sm:text-base">
+                Buy, sell and connect with students from your campus and beyond.
               </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={() => navigate("/create-listing")}
+                  className="rounded-xl bg-white px-5 py-3 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-50"
+                >
+                  + Sell a Product
+                </button>
+
+                <button
+                  onClick={() => navigate("/listings")}
+                  className="rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Explore Marketplace
+                </button>
+              </div>
             </div>
 
-            <div>
-              <p className="text-sm text-gray-500">Email</p>
-              <p className="mt-1 break-all font-semibold text-gray-800">
-                {profile?.email || user?.email || "Unavailable"}
-              </p>
-            </div>
+            <div className="flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt={studentName}
+                  className="h-16 w-16 rounded-full border-2 border-white/50 object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl font-bold">
+                  {studentName.charAt(0).toUpperCase()}
+                </div>
+              )}
 
-            <div>
-              <p className="text-sm text-gray-500">College</p>
-              <p className="mt-1 font-semibold text-gray-800">
-                {collegeName}
-              </p>
-            </div>
+              <div className="max-w-[180px]">
+                <p className="font-bold">{studentName}</p>
+                <p className="mt-1 truncate text-xs text-blue-100">
+                  {collegeName}
+                </p>
 
-            <div>
-              <p className="text-sm text-gray-500">Branch</p>
-              <p className="mt-1 font-semibold text-gray-800">
-                {profile?.branch || "Not provided"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Academic Year</p>
-              <p className="mt-1 font-semibold text-gray-800">
-                {profile?.academicYear
-                  ? `Year ${profile.academicYear}`
-                  : "Not provided"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Account Role</p>
-              <p className="mt-1 font-semibold capitalize text-gray-800">
-                {profile?.role || user?.role || "Student"}
-              </p>
+                <button
+                  onClick={() => navigate("/profile")}
+                  className="mt-2 text-xs font-bold text-white underline underline-offset-4 hover:text-blue-100"
+                >
+                  Edit Profile
+                </button>
+              </div>
             </div>
 
           </div>
         </section>
 
-        {/* STATISTICS */}
+        {/* OVERVIEW */}
 
-        <section className="mb-8">
-          <h2 className="mb-5 text-xl font-bold text-gray-800">
-            Overview
-          </h2>
+        <section className="mb-9">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Your Overview
+              </h2>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+              <p className="mt-1 text-sm text-gray-500">
+                A quick look at your marketplace activity.
+              </p>
+            </div>
 
+            <button
+              onClick={() => navigate("/my-listings")}
+              className="text-sm font-semibold text-blue-600 hover:underline"
+            >
+              Manage Listings →
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {statCards.map((card) => (
               <div
                 key={card.title}
-                className="rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
-                <div className="flex items-center justify-between">
-
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      {card.title}
-                    </p>
-
-                    <h3 className="mt-3 text-3xl font-bold text-gray-800">
-                      {card.value}
-                    </h3>
-                  </div>
-
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl ${card.color}`}
-                  >
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg ${card.color}`}>
                     {card.icon}
-                  </div>
-
+                  </span>
                 </div>
+
+                <h3 className="mt-5 text-3xl font-extrabold text-gray-900">
+                  {card.value}
+                </h3>
+
+                <p className="mt-1 text-xs font-medium text-gray-500 sm:text-sm">
+                  {card.title}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* STUDENT INFORMATION */}
+
+        <section className="mb-9 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Student Information
+              </h2>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Your account details.
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate("/profile")}
+              className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 transition hover:border-blue-300 hover:text-blue-600"
+            >
+              Edit
+            </button>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+            {[
+              {
+                label: "Full Name",
+                value: studentName,
+              },
+              {
+                label: "Email Address",
+                value: profile?.email || user?.email || "Unavailable",
+              },
+              {
+                label: "College",
+                value: collegeName,
+              },
+              {
+                label: "Branch",
+                value: profile?.branch || "Not provided",
+              },
+              {
+                label: "Academic Year",
+                value: profile?.academicYear
+                  ? `Year ${profile.academicYear}`
+                  : "Not provided",
+              },
+              {
+                label: "Account Role",
+                value: profile?.role || user?.role || "Student",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="min-w-0 rounded-xl bg-slate-50 p-4"
+              >
+                <p className="text-xs font-medium text-gray-400">
+                  {item.label}
+                </p>
+
+                <p className="mt-2 break-words text-sm font-semibold text-gray-800">
+                  {item.value}
+                </p>
               </div>
             ))}
 
@@ -455,65 +538,89 @@ const Dashboard = () => {
 
         {/* QUICK ACTIONS */}
 
-        <section className="mb-8">
-          <h2 className="mb-5 text-xl font-bold text-gray-800">
-            Quick Actions
-          </h2>
+        <section className="mb-9">
+          <div className="mb-5">
+            <h2 className="text-xl font-bold text-gray-900">
+              Quick Actions
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Get where you need to go.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
             <button
               onClick={() => navigate("/create-listing")}
-              className="rounded-xl bg-blue-600 p-5 text-left text-white shadow transition hover:bg-blue-700"
+              className="group rounded-2xl border border-blue-100 bg-blue-600 p-5 text-left text-white shadow-sm transition hover:-translate-y-1 hover:bg-blue-700 hover:shadow-md"
             >
-              <span className="text-2xl">➕</span>
-              <h3 className="mt-3 font-bold">Create Listing</h3>
-              <p className="mt-1 text-sm text-blue-100">
-                Sell, rent or exchange products.
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-xl">
+                +
+              </span>
+
+              <h3 className="mt-4 font-bold">
+                Sell a Product
+              </h3>
+
+              <p className="mt-1 text-xs leading-5 text-blue-100">
+                Create a new product listing.
               </p>
             </button>
 
             <button
               onClick={() => navigate("/my-listings")}
-              className="rounded-xl bg-white p-5 text-left shadow transition hover:shadow-lg"
+              className="rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
-              <span className="text-2xl">📦</span>
-              <h3 className="mt-3 font-bold text-gray-800">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                📦
+              </span>
+
+              <h3 className="mt-4 font-bold text-gray-900">
                 My Listings
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Manage your products.
+
+              <p className="mt-1 text-xs leading-5 text-gray-500">
+                Manage your uploaded products.
               </p>
             </button>
 
             <button
               onClick={() => navigate("/listings")}
-              className="rounded-xl bg-white p-5 text-left shadow transition hover:shadow-lg"
+              className="rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
-              <span className="text-2xl">🔍</span>
-              <h3 className="mt-3 font-bold text-gray-800">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-xl">
+                🔍
+              </span>
+
+              <h3 className="mt-4 font-bold text-gray-900">
                 Marketplace
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Discover products from students.
+
+              <p className="mt-1 text-xs leading-5 text-gray-500">
+                Find products listed by students.
               </p>
             </button>
 
             <button
               onClick={() => navigate("/conversations")}
-              className="relative rounded-xl bg-white p-5 text-left shadow transition hover:shadow-lg"
+              className="relative rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
               {unreadMessages > 0 && (
-                <span className="absolute right-4 top-4 rounded-full bg-red-600 px-2 py-1 text-xs font-bold text-white">
+                <span className="absolute right-4 top-4 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white">
                   {unreadMessages}
                 </span>
               )}
 
-              <span className="text-2xl">💬</span>
-              <h3 className="mt-3 font-bold text-gray-800">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-50 text-xl">
+                💬
+              </span>
+
+              <h3 className="mt-4 font-bold text-gray-900">
                 Messages
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+
+              <p className="mt-1 text-xs leading-5 text-gray-500">
                 Chat with other students.
               </p>
             </button>
@@ -523,11 +630,11 @@ const Dashboard = () => {
 
         {/* RECENT CONVERSATIONS */}
 
-        <section className="mb-8 rounded-xl bg-white p-6 shadow">
+        <section className="mb-9 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
 
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-gray-900">
                 Recent Conversations
               </h2>
 
@@ -545,20 +652,26 @@ const Dashboard = () => {
           </div>
 
           {recentConversations.length === 0 ? (
-            <div className="py-8 text-center">
-              <p className="text-gray-500">
-                You don't have any conversations yet.
+            <div className="rounded-xl bg-slate-50 px-5 py-10 text-center">
+              <div className="text-3xl">💬</div>
+
+              <h3 className="mt-3 font-semibold text-gray-800">
+                No conversations yet
+              </h3>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Start a conversation with a seller from the Marketplace.
               </p>
 
               <button
                 onClick={() => navigate("/listings")}
-                className="mt-4 rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
+                className="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
                 Explore Marketplace
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-gray-100">
 
               {recentConversations.slice(0, 4).map((conversation) => {
                 const otherUser = getOtherUser(conversation);
@@ -567,15 +680,13 @@ const Dashboard = () => {
                 const unreadCount = conversation.unreadCount || 0;
 
                 return (
-                  <div
+                  <button
                     key={conversation._id}
                     onClick={() =>
                       navigate(`/chat/${conversation._id}`)
                     }
-                    className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition hover:bg-gray-50 sm:gap-4 sm:p-4"
+                    className="flex w-full items-center gap-3 rounded-xl px-2 py-4 text-left transition hover:bg-slate-50 sm:gap-4 sm:px-3"
                   >
-
-                    {/* PROFILE IMAGE */}
 
                     {otherUser?.profileImage ? (
                       <img
@@ -589,26 +700,21 @@ const Dashboard = () => {
                       </div>
                     )}
 
-                    {/* CONVERSATION DETAILS */}
-
                     <div className="min-w-0 flex-1">
-
                       <div className="flex flex-wrap items-center justify-between gap-2">
-
-                        <h3 className="truncate font-semibold text-gray-800">
+                        <h3 className="truncate text-sm font-bold text-gray-900">
                           {otherUser?.name || "Unknown User"}
                         </h3>
 
-                        <span className="shrink-0 text-xs text-gray-400">
+                        <span className="shrink-0 text-[11px] text-gray-400">
                           {formatDate(
                             lastMessage?.createdAt ||
-                            conversation.updatedAt
+                              conversation.updatedAt
                           )}
                         </span>
-
                       </div>
 
-                      <p className="truncate text-xs text-gray-500">
+                      <p className="mt-0.5 truncate text-xs font-medium text-blue-600">
                         {listing?.title || "Listing unavailable"}
                       </p>
 
@@ -621,38 +727,40 @@ const Dashboard = () => {
                       >
                         {lastMessage?.text || "Start a conversation"}
                       </p>
-
                     </div>
 
-                    {/* UNREAD BADGE */}
-
                     {unreadCount > 0 && (
-                      <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
+                      <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 px-2 text-xs font-bold text-white">
                         {unreadCount}
                       </span>
                     )}
 
-                    <span className="hidden shrink-0 text-sm font-medium text-blue-600 sm:block">
-                      Open →
+                    <span className="hidden text-sm font-semibold text-blue-600 sm:block">
+                      →
                     </span>
 
-                  </div>
+                  </button>
                 );
               })}
 
             </div>
           )}
-
         </section>
 
         {/* RECENT LISTINGS */}
 
-        <section className="mb-8 rounded-xl bg-white p-6 shadow">
+        <section className="mb-9 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
 
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-bold text-gray-800">
-              Recent Listings
-            </h2>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Recent Listings
+              </h2>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Products you've recently uploaded.
+              </p>
+            </div>
 
             <button
               onClick={() => navigate("/my-listings")}
@@ -663,14 +771,20 @@ const Dashboard = () => {
           </div>
 
           {recentListings.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-gray-500">
-                You haven't created any listings yet.
+            <div className="rounded-xl bg-slate-50 px-5 py-10 text-center">
+              <div className="text-3xl">📦</div>
+
+              <h3 className="mt-3 font-semibold text-gray-800">
+                No listings yet
+              </h3>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Your uploaded products will appear here.
               </p>
 
               <button
                 onClick={() => navigate("/create-listing")}
-                className="mt-4 rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
+                className="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
                 Create Your First Listing
               </button>
@@ -679,63 +793,74 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
               {recentListings.map((listing) => (
-                <div
+                <button
                   key={listing._id}
-                  className="overflow-hidden rounded-xl border"
+                  onClick={() =>
+                    navigate(`/listings/${listing._id}`)
+                  }
+                  className="overflow-hidden rounded-xl border border-gray-200 bg-white text-left transition hover:-translate-y-1 hover:shadow-md"
                 >
 
                   {listing.images?.length > 0 ? (
                     <img
                       src={listing.images[0].url}
                       alt={listing.title}
-                      className="h-40 w-full object-cover"
+                      className="h-44 w-full bg-gray-100 object-cover"
                     />
                   ) : (
-                    <div className="flex h-40 items-center justify-center bg-gray-100 text-gray-500">
-                      No Image
+                    <div className="flex h-44 items-center justify-center bg-gray-100 text-sm text-gray-400">
+                      No Image Available
                     </div>
                   )}
 
                   <div className="p-4">
-
-                    <h3 className="truncate font-semibold text-gray-800">
+                    <h3 className="truncate font-bold text-gray-900">
                       {listing.title}
                     </h3>
 
-                    <p className="mt-2 font-bold text-blue-600">
+                    <p className="mt-2 text-lg font-extrabold text-blue-600">
                       {formatPrice(listing)}
                     </p>
 
-                    <span
-                      className={`mt-3 inline-block rounded-full px-3 py-1 text-xs capitalize ${
-                        listing.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : listing.status === "reserved"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : listing.status === "completed"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {listing.status}
-                    </span>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                          listing.status === "active"
+                            ? "bg-green-50 text-green-700"
+                            : listing.status === "reserved"
+                            ? "bg-amber-50 text-amber-700"
+                            : listing.status === "completed"
+                            ? "bg-blue-50 text-blue-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {listing.status}
+                      </span>
 
+                      <span className="text-xs font-semibold text-blue-600">
+                        Details →
+                      </span>
+                    </div>
                   </div>
-                </div>
+
+                </button>
               ))}
 
             </div>
           )}
-
         </section>
 
-        {/* LOGOUT */}
+        {/* FOOTER */}
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 py-6">
+          <p className="text-xs text-gray-400">
+            StudentMarket · Campus Marketplace
+          </p>
+
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            className="rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loggingOut ? "Logging out..." : "Logout"}
           </button>
