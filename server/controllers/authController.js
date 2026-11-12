@@ -4,6 +4,23 @@ import User from "../models/User.js";
 import College from "../models/College.js";
 import jwt from "jsonwebtoken";
 
+// ============================================
+// COOKIE CONFIGURATION
+// ============================================
+
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite:
+    process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: "/",
+});
+
+// ============================================
+// REGISTER USER
+// ============================================
+
 export const register = async (req, res) => {
   try {
     const { name, email, password, collegeId } = req.body;
@@ -84,9 +101,10 @@ export const register = async (req, res) => {
   }
 };
 
+// ============================================
+// LOGIN USER
+// ============================================
 
-
-// Login user
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -128,13 +146,7 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    res.cookie("token", token, getCookieOptions());
 
     return res.status(200).json({
       success: true,
@@ -157,15 +169,14 @@ export const login = async (req, res) => {
   }
 };
 
+// ============================================
+// LOGOUT USER
+// ============================================
 
-//logout user
 export const logout = (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
+  const { maxAge, ...cookieOptions } = getCookieOptions();
+
+  res.clearCookie("token", cookieOptions);
 
   return res.status(200).json({
     success: true,

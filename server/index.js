@@ -24,6 +24,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import authMiddleware from "./middleware/authMiddleware.js";
 
 const app = express();
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 const httpServer = createServer(app);
 
 // ============================================
@@ -32,7 +33,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: CLIENT_URL,
     credentials: true,
   },
 });
@@ -186,7 +187,7 @@ io.on("connection", (socket) => {
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: CLIENT_URL,
     credentials: true,
   })
 );
@@ -252,9 +253,9 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    httpServer.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
+  httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+  });
 
   } catch (error) {
     console.error("Server startup failed:", error.message);
