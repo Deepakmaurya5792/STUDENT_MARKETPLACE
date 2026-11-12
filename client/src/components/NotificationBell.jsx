@@ -214,7 +214,7 @@ const NotificationBell = () => {
 
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-full text-white transition hover:bg-gray-700"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
         aria-label="Notifications"
         aria-expanded={isOpen}
       >

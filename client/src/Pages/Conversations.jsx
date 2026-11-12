@@ -18,6 +18,9 @@ const Conversations = () => {
 
     const fetchConversations = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const response = await api.get("/conversations");
 
         if (isMounted) {
@@ -27,7 +30,7 @@ const Conversations = () => {
         if (isMounted) {
           setError(
             err.response?.data?.message ||
-              "Failed to load conversations"
+              "Failed to load conversations."
           );
         }
       } finally {
@@ -35,11 +38,7 @@ const Conversations = () => {
       }
     };
 
-    // Handle new incoming messages
-    const handleNewMessage = ({
-      conversationId,
-      message,
-    }) => {
+    const handleNewMessage = ({ conversationId, message }) => {
       setConversations((prev) => {
         const updated = prev.map((conversation) => {
           if (conversation._id !== conversationId) {
@@ -61,7 +60,6 @@ const Conversations = () => {
       });
     };
 
-    // Handle messages being marked as read
     const handleMessagesRead = ({ conversationId }) => {
       setConversations((prev) =>
         prev.map((conversation) =>
@@ -95,129 +93,267 @@ const Conversations = () => {
       conversation.buyer?._id?.toString() ===
       currentUserId?.toString();
 
-    return isBuyer
-      ? conversation.seller
-      : conversation.buyer;
+    return isBuyer ? conversation.seller : conversation.buyer;
   };
 
   const formatDate = (date) => {
     if (!date) return "";
 
-    return new Date(date).toLocaleString([], {
+    const messageDate = new Date(date);
+
+    if (Number.isNaN(messageDate.getTime())) return "";
+
+    const today = new Date();
+    const isToday =
+      messageDate.toDateString() === today.toDateString();
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const isYesterday =
+      messageDate.toDateString() === yesterday.toDateString();
+
+    if (isToday) {
+      return messageDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    if (isYesterday) return "Yesterday";
+
+    return messageDate.toLocaleDateString([], {
       day: "numeric",
       month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
+  const totalUnread = conversations.reduce(
+    (total, conversation) =>
+      total + (conversation.unreadCount || 0),
+    0
+  );
+
   if (loading) {
     return (
-      <p className="py-20 text-center">
-        Loading conversations...
-      </p>
+      <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-8 h-8 w-48 animate-pulse rounded-lg bg-slate-200" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex animate-pulse items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4"
+              >
+                <div className="h-16 w-16 rounded-xl bg-slate-200" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-1/3 rounded bg-slate-200" />
+                  <div className="h-3 w-1/2 rounded bg-slate-100" />
+                  <div className="h-3 w-2/3 rounded bg-slate-100" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
 
-        <h1 className="mb-2 text-3xl font-bold">
-          My Messages
-        </h1>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+            <span className="h-2 w-2 rounded-full bg-blue-600" />
+            CAMPUS MESSAGES
+          </div>
 
-        <p className="mb-8 text-gray-600">
-          Your conversations with other students.
-        </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                My Messages
+              </h1>
+              <p className="mt-2 text-sm text-slate-500 sm:text-base">
+                Your conversations with other students.
+              </p>
+            </div>
 
-        {error ? (
-          <p className="text-center text-red-600">
-            {error}
-          </p>
-        ) : conversations.length === 0 ? (
-          <div className="rounded-xl bg-white p-10 text-center shadow">
-            <h2 className="text-xl font-semibold">
+            {totalUnread > 0 && (
+              <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-2">
+                <p className="text-xs font-medium text-blue-600">
+                  Unread messages
+                </p>
+                <p className="text-xl font-bold text-blue-700">
+                  {totalUnread}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+            <p className="text-sm text-red-700">{error}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="shrink-0 text-sm font-semibold text-red-700 underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!error && conversations.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-16 text-center shadow-sm">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.7}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 10h8m-8 4h5m-8 6l-1-4a8 8 0 111.5 1.5L5 20z"
+                />
+              </svg>
+            </div>
+
+            <h2 className="text-lg font-bold text-slate-900">
               No conversations yet
             </h2>
 
-            <p className="mt-2 text-gray-500">
-              Contact a seller to start a conversation.
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
+              When you contact a seller or someone messages you,
+              your conversations will appear here.
             </p>
+
+            <button
+              type="button"
+              onClick={() => navigate("/listings")}
+              className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+            >
+              Explore Listings
+            </button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {conversations.map((conversation) => {
-              const otherUser = getOtherUser(conversation);
-              const listing = conversation.listing;
-              const lastMessage = conversation.lastMessage;
-              const unreadCount = conversation.unreadCount || 0;
+        )}
 
-              return (
-                <div
-                  key={conversation._id}
-                  onClick={() =>
-                    navigate(`/chat/${conversation._id}`)
-                  }
-                  className="flex cursor-pointer items-center gap-4 rounded-xl bg-white p-4 shadow transition hover:shadow-lg"
-                >
-                  {/* Listing Image */}
-                  {listing?.images?.length > 0 ? (
-                    <img
-                      src={listing.images[0].url}
-                      alt={listing.title}
-                      className="h-20 w-20 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-500">
-                      No Image
-                    </div>
-                  )}
+        {/* Conversation List */}
+        {conversations.length > 0 && (
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h2 className="text-sm font-bold text-slate-800">
+                All Conversations
+              </h2>
+              <span className="text-xs font-medium text-slate-400">
+                {conversations.length}{" "}
+                {conversations.length === 1
+                  ? "conversation"
+                  : "conversations"}
+              </span>
+            </div>
 
-                  {/* Conversation Information */}
-                  <div className="min-w-0 flex-1">
-                    <h2 className="truncate font-semibold">
-                      {otherUser?.name || "Unknown User"}
-                    </h2>
+            <div className="divide-y divide-slate-100">
+              {conversations.map((conversation) => {
+                const otherUser = getOtherUser(conversation);
+                const listing = conversation.listing;
+                const lastMessage = conversation.lastMessage;
+                const unreadCount = conversation.unreadCount || 0;
 
-                    <p className="truncate text-sm text-gray-500">
-                      {listing?.title || "Listing unavailable"}
-                    </p>
-
-                    <p
-                      className={`mt-2 truncate text-sm ${
-                        unreadCount > 0
-                          ? "font-semibold text-gray-900"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      {lastMessage?.text ||
-                        "Start a conversation"}
-                    </p>
-                  </div>
-
-                  {/* Date and Unread Badge */}
-                  <div className="flex shrink-0 flex-col items-end gap-3">
-                    <p className="text-xs text-gray-400">
-                      {formatDate(
-                        lastMessage?.createdAt ||
-                          conversation.updatedAt
+                return (
+                  <button
+                    key={conversation._id}
+                    type="button"
+                    onClick={() =>
+                      navigate(`/chat/${conversation._id}`)
+                    }
+                    className="group flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-slate-50 sm:gap-4 sm:px-5"
+                  >
+                    {/* Listing Image */}
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-20 sm:w-20">
+                      {listing?.images?.length > 0 ? (
+                        <img
+                          src={listing.images[0].url}
+                          alt={listing.title || "Listing"}
+                          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs font-medium text-slate-400">
+                          No Image
+                        </div>
                       )}
-                    </p>
+                    </div>
 
-                    {unreadCount > 0 && (
-                      <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
-                        {unreadCount} New
+                    {/* Conversation Details */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="truncate text-sm font-bold text-slate-900 sm:text-base">
+                          {otherUser?.name || "Unknown User"}
+                        </h3>
+
+                        {unreadCount > 0 && (
+                          <span className="h-2 w-2 shrink-0 rounded-full bg-blue-600" />
+                        )}
+                      </div>
+
+                      <p className="mt-0.5 truncate text-xs font-medium text-blue-600 sm:text-sm">
+                        {listing?.title || "Listing unavailable"}
+                      </p>
+
+                      <p
+                        className={`mt-2 truncate text-xs sm:text-sm ${
+                          unreadCount > 0
+                            ? "font-semibold text-slate-900"
+                            : "text-slate-500"
+                        }`}
+                      >
+                        {lastMessage?.text ||
+                          "Start a conversation"}
+                      </p>
+                    </div>
+
+                    {/* Date and Unread Count */}
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <span className="text-[10px] text-slate-400 sm:text-xs">
+                        {formatDate(
+                          lastMessage?.createdAt ||
+                            conversation.updatedAt
+                        )}
                       </span>
-                    )}
 
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700">
-                      Open Chat
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                      {unreadCount > 0 && (
+                        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-600 px-2 text-xs font-bold text-white">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="hidden h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-blue-600 sm:block"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
