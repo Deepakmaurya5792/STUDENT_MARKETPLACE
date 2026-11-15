@@ -11,9 +11,9 @@ function CollegeSelect({ value, onChange }) {
     const fetchColleges = async () => {
       try {
         const data = await getColleges();
-        setColleges(data);
+        setColleges(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError("Failed to load colleges. Please try again.");
+        setError("Failed to load colleges. Please make sure the backend server is running.");
       } finally {
         setLoading(false);
       }
@@ -52,11 +52,17 @@ function CollegeSelect({ value, onChange }) {
     >
       <option value="">Choose a college</option>
 
-      {colleges.map((college) => (
-        <option key={college._id} value={college._id}>
-          {college.name}
+      {colleges.length === 0 ? (
+        <option value="" disabled>
+          No colleges available
         </option>
-      ))}
+      ) : (
+        colleges.map((college) => (
+          <option key={college._id} value={college._id}>
+            {college.name}
+          </option>
+        ))
+      )}
     </select>
   );
 }
