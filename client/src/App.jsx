@@ -22,6 +22,7 @@ import EditListing from "./pages/EditListing";
 import Chat from "./pages/Chat";
 import Conversations from "./pages/Conversations";
 import WishlistPage from "./pages/WishlistPage";
+import CampusHub from "./Pages/CampusHub";
 
 import NotificationBell from "./components/NotificationBell";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -77,6 +78,10 @@ const Navbar = () => {
 
           <NavLink to="/listings" className={linkClass}>
             Marketplace
+          </NavLink>
+
+          <NavLink to="/campus-hub" className={linkClass}>
+            Lost & Found / Freecycle
           </NavLink>
 
           {!loading && user && (
@@ -188,6 +193,10 @@ function App() {
 
         <Route path="/listings" element={<Listings />} />
         <Route path="/listings/:id" element={<ListingDetails />} />
+
+        <Route path="/campus-hub" element={<CampusHub />} />
+        <Route path="/lost-found" element={<Navigate to="/campus-hub" replace />} />
+        <Route path="/freecycle" element={<Navigate to="/campus-hub" replace />} />
 
         {/* PROTECTED ROUTES */}
 

@@ -21,6 +21,7 @@ import messageRoutes from "./routes/messageRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
+import lostFoundRoutes from "./routes/lostFoundRoutes.js";
 
 import authMiddleware from "./middleware/authMiddleware.js";
 
@@ -244,6 +245,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/lost-found", lostFoundRoutes);
 
 // ============================================
 // SERVER CONFIGURATION
