@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter,
   Routes,
@@ -22,6 +21,7 @@ import MyListings from "./pages/MyListings";
 import EditListing from "./pages/EditListing";
 import Chat from "./pages/Chat";
 import Conversations from "./pages/Conversations";
+import WishlistPage from "./pages/WishlistPage";
 
 import NotificationBell from "./components/NotificationBell";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -87,6 +87,10 @@ const Navbar = () => {
 
               <NavLink to="/my-listings" className={linkClass}>
                 My Listings
+              </NavLink>
+
+              <NavLink to="/wishlist" className={linkClass}>
+                Wishlist
               </NavLink>
 
               <NavLink to="/conversations" className={linkClass}>
@@ -194,6 +198,11 @@ function App() {
           <Route
             path="/create-listing"
             element={<CreateListing />}
+          />
+
+          <Route
+            path="/wishlist"
+            element={<WishlistPage />}
           />
 
           <Route
