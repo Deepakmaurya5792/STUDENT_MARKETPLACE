@@ -62,6 +62,11 @@ const userSchema = new mongoose.Schema(
       enum: ["active", "suspended", "deactivated"],
       default: "active",
     },
+    // Wishlist: array of saved listing references
+    savedListings: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Listing",
+    }],
   },
   {
     timestamps: true,

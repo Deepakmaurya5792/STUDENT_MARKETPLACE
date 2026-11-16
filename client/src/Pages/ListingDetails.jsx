@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getSingleListing } from "../services/listingService";
 import { startConversation } from "../services/messageService";
 import { useAuth } from "../context/AuthContext";
+import WishlistButton from "../components/WishlistButton";
 
 const ListingDetails = () => {
   const { id } = useParams();
@@ -441,38 +442,43 @@ const ListingDetails = () => {
                 )}
 
                 {isSeller ? (
-                  <div className="rounded-xl bg-gray-100 p-4 text-center text-sm font-medium text-gray-600">
+                  <div className="rounded-xl bg-gray-100 p-4 text-center text-sm font-medium text-gray-600 mb-3">
                     This is your listing.
                   </div>
                 ) : user ? (
-                  <button
-                    onClick={handleChatWithSeller}
-                    disabled={chatLoading}
-                    className="flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-6 py-4 font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {chatLoading ? (
-                      "Opening Chat..."
-                    ) : (
-                      <>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.8}
-                          stroke="currentColor"
-                          className="h-5 w-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H15m-6.75 7.5h7.5a3.75 3.75 0 0 0 3.75-3.75v-6a3.75 3.75 0 0 0-3.75-3.75h-7.5A3.75 3.75 0 0 0 5.25 7.5v6a3.75 3.75 0 0 0 3 3.675v2.325l3-2.25Z"
-                          />
-                        </svg>
+                  <div className="flex gap-3 mb-3">
+                    <button
+                      onClick={handleChatWithSeller}
+                      disabled={chatLoading}
+                      className="flex flex-1 items-center justify-center gap-3 rounded-xl bg-blue-600 px-6 py-4 font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {chatLoading ? (
+                        "Opening Chat..."
+                      ) : (
+                        <>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.8}
+                            stroke="currentColor"
+                            className="h-5 w-5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H15m-6.75 7.5h7.5a3.75 3.75 0 0 0 3.75-3.75v-6a3.75 3.75 0 0 0-3.75-3.75h-7.5A3.75 3.75 0 0 0 5.25 7.5v6a3.75 3.75 0 0 0 3 3.675v2.325l3-2.25Z"
+                            />
+                          </svg>
 
-                        Chat with Seller
-                      </>
-                    )}
-                  </button>
+                          Chat with Seller
+                        </>
+                      )}
+                    </button>
+                    <div className="flex items-center justify-center px-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+                      <WishlistButton listingId={listing._id} />
+                    </div>
+                  </div>
                 ) : (
                   <button
                     onClick={() => navigate("/login")}

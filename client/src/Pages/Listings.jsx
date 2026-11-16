@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllListings } from "../services/listingService";
 import { getColleges } from "../services/collegeService";
+import WishlistButton from "../components/WishlistButton";
 
 const Listings = () => {
   const navigate = useNavigate();
@@ -451,6 +452,11 @@ const Listings = () => {
                       {listing.condition}
                     </span>
                   )}
+
+                  {/* WISHLIST BUTTON */}
+                  <div className="absolute right-3 bottom-3 z-10" onClick={(e) => e.stopPropagation()}>
+                    <WishlistButton listingId={listing._id} />
+                  </div>
 
                 </div>
 

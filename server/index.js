@@ -20,6 +20,7 @@ import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
 
 import authMiddleware from "./middleware/authMiddleware.js";
 
@@ -242,6 +243,7 @@ app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 // ============================================
 // SERVER CONFIGURATION
