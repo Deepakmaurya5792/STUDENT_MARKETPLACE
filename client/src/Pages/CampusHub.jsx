@@ -113,7 +113,7 @@ export default function CampusHub() {
         }
       } catch (err) {
         console.error("Data fetch error:", err);
-        setError("Failed to load campus items. Please ensure backend is running.");
+        setError("Failed to load campus items. Please make sure the backend server is running.");
       } finally {
         setLoading(false);
       }
@@ -242,97 +242,117 @@ export default function CampusHub() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-slate-50">
 
-        {/* ==================================================== */}
-        {/* HERO BANNER & STATS */}
-        {/* ==================================================== */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 p-8 sm:p-12 text-white shadow-xl mb-10">
-          <div className="relative z-10 max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-200 backdrop-blur mb-4">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              CAMPUS REUSE & RECOVERY HUB
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
-              Lost & Found & <span className="text-emerald-400">Zero-Rupee</span> Freecycle
+      {/* ==================================================== */}
+      {/* HERO SECTION - MATCHING MARKETPLACE THEME */}
+      {/* ==================================================== */}
+      <section className="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-5 py-12 text-white sm:py-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-wide text-blue-50">
+              <span className="h-2 w-2 rounded-full bg-green-400" />
+              CAMPUS COMMUNITY & CIRCULAR HUB
+            </span>
+
+            <h1 className="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+              Lost & Found.
+              <br />
+              <span className="text-blue-200">
+                Zero-Rupee Freecycle.
+              </span>
             </h1>
-            <p className="text-base sm:text-lg text-slate-200 mb-8 leading-relaxed">
-              Reunite lost campus items with their rightful owners, or give away textbooks, lab gear, and dorm essentials for ₹0 to fellow students.
+
+            <p className="mt-4 max-w-xl text-base leading-7 text-blue-100 sm:text-lg">
+              Reunite lost campus items with their rightful owners, or give away textbooks, lab gear, and dorm essentials for free to fellow students.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <button
                 onClick={() => {
                   if (!user) navigate("/login");
                   else setIsModalOpen(true);
                 }}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600 hover:shadow-emerald-500/40 active:scale-95"
+                className="rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-blue-700 shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-50 active:scale-95"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Report Lost / Found Item
+                + Report Lost / Found Item
               </button>
 
               <Link
                 to="/create-listing"
-                className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-6 py-3.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white/25 active:scale-95"
+                className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-white/20 active:scale-95"
               >
-                <span>🎁</span>
-                Give Away Item (₹0 Free)
+                + Give Away Item (₹0 Free)
               </Link>
             </div>
           </div>
-
-          {/* Decorative shapes */}
-          <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
-          <div className="absolute right-10 bottom-0 h-64 w-64 rounded-full bg-emerald-500/15 blur-2xl" />
         </div>
+      </section>
+
+      {/* ==================================================== */}
+      {/* MAIN CONTAINER */}
+      {/* ==================================================== */}
+      <main className="mx-auto max-w-7xl px-5 py-10">
 
         {/* ==================================================== */}
-        {/* TABS: LOST & FOUND vs FREECYCLE */}
+        {/* TABS & CAMPUS SELECTOR */}
         {/* ==================================================== */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div className="inline-flex p-1.5 rounded-2xl bg-slate-200/80 backdrop-blur">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+          {/* Clean White/Blue Pill Tabs */}
+          <div className="inline-flex rounded-2xl border border-gray-200 bg-white p-1.5 shadow-sm">
             <button
               onClick={() => setActiveTab("lostfound")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                 activeTab === "lostfound"
-                  ? "bg-white text-slate-900 shadow-md"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-blue-600"
               }`}
             >
               <span>🔍</span>
               Lost & Found Board
-              <span className="ml-1.5 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+              <span
+                className={`ml-1.5 rounded-full px-2 py-0.5 text-xs font-bold ${
+                  activeTab === "lostfound"
+                    ? "bg-white/20 text-white"
+                    : "bg-blue-50 text-blue-700"
+                }`}
+              >
                 {items.length}
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab("freecycle")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                 activeTab === "freecycle"
-                  ? "bg-white text-slate-900 shadow-md"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-blue-600"
               }`}
             >
               <span>🎁</span>
               Zero-Rupee Freecycle Hub
-              <span className="ml-1.5 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
+              <span
+                className={`ml-1.5 rounded-full px-2 py-0.5 text-xs font-bold ${
+                  activeTab === "freecycle"
+                    ? "bg-white/20 text-white"
+                    : "bg-blue-50 text-blue-700"
+                }`}
+              >
                 {freecycleItems.length}
               </span>
             </button>
           </div>
 
-          {/* College Filter Selector */}
+          {/* College Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Campus:</span>
+            <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Campus:
+            </label>
             <select
               value={selectedCollege}
               onChange={(e) => setSelectedCollege(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
             >
               <option value="">All Campuses</option>
               {colleges.map((c) => (
@@ -345,80 +365,96 @@ export default function CampusHub() {
         </div>
 
         {/* ==================================================== */}
-        {/* SUB-FILTERS & SEARCH BAR */}
+        {/* SEARCH AND FILTERS CARD */}
         {/* ==================================================== */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+        <div className="mb-10 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row">
 
             {/* Search Input */}
             <div className="relative flex-1">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.8}
+                stroke="currentColor"
+                className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m21 21-4.34-4.34m0 0A7.5 7.5 0 1 0 6.05 6.05a7.5 7.5 0 0 0 10.61 10.61Z"
+                />
+              </svg>
+
               <input
                 type="text"
                 placeholder={
                   activeTab === "lostfound"
-                    ? "Search lost or found items by name, location (e.g. library, canteen)..."
-                    : "Search free books, drafters, essentials..."
+                    ? "Search by item name or campus location (e.g. Library, Canteen, Audi)..."
+                    : "Search free textbooks, lab coats, drafters, essentials..."
                 }
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
               />
             </div>
 
-            {/* Sub-Filters for Lost & Found (Lost vs Found) */}
+            {/* Sub-Filters for Lost & Found */}
             {activeTab === "lostfound" && (
-              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+              <div className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 p-1">
                 <button
+                  type="button"
                   onClick={() => setLfType("all")}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                  className={`rounded-lg px-4 py-2.5 text-xs font-semibold transition ${
                     lfType === "all"
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   All ({items.length})
                 </button>
+
                 <button
+                  type="button"
                   onClick={() => setLfType("lost")}
-                  className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                  className={`flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-semibold transition ${
                     lfType === "lost"
-                      ? "bg-rose-500 text-white shadow-sm"
-                      : "text-rose-600 hover:bg-rose-50"
+                      ? "bg-red-600 text-white shadow-sm"
+                      : "text-red-600 hover:bg-red-50"
                   }`}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
                   Lost
                 </button>
+
                 <button
+                  type="button"
                   onClick={() => setLfType("found")}
-                  className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                  className={`flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-semibold transition ${
                     lfType === "found"
-                      ? "bg-emerald-600 text-white shadow-sm"
-                      : "text-emerald-700 hover:bg-emerald-50"
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-blue-600 hover:bg-blue-50"
                   }`}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
                   Found
                 </button>
               </div>
             )}
           </div>
 
-          {/* Category Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-4 border-t border-slate-100 mt-4 no-scrollbar">
+          {/* Category Pills */}
+          <div className="mt-4 flex items-center gap-2 overflow-x-auto border-t border-gray-100 pt-4 no-scrollbar">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
+                type="button"
                 onClick={() => setCategory(cat.id)}
-                className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-semibold transition ${
                   category === cat.id
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                    : "border border-gray-200 bg-gray-50 text-gray-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
                 }`}
               >
                 {cat.label}
@@ -428,67 +464,82 @@ export default function CampusHub() {
         </div>
 
         {/* ==================================================== */}
-        {/* LISTINGS GRID */}
+        {/* LISTINGS / ITEMS GRID */}
         {/* ==================================================== */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-72 rounded-2xl bg-white p-5 shadow-sm animate-pulse border border-slate-200">
-                <div className="h-40 bg-slate-200 rounded-xl mb-4" />
-                <div className="h-5 bg-slate-200 rounded w-3/4 mb-2" />
-                <div className="h-4 bg-slate-200 rounded w-1/2" />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+              <div
+                key={item}
+                className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+              >
+                <div className="h-52 animate-pulse bg-gray-200" />
+                <div className="space-y-3 p-4">
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
+                  <div className="h-6 w-1/3 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-gray-200" />
+                </div>
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
-            {error}
+          <div className="rounded-2xl border border-red-100 bg-white px-6 py-16 text-center shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-2xl font-bold text-red-600">
+              !
+            </div>
+            <h2 className="mt-4 text-xl font-bold text-gray-900">
+              Something went wrong
+            </h2>
+            <p className="mt-2 text-sm text-red-600">{error}</p>
           </div>
         ) : activeTab === "lostfound" ? (
           // ========================
           // LOST & FOUND GRID
           // ========================
           items.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl mb-4">
+            <div className="rounded-2xl border border-gray-200 bg-white px-6 py-20 text-center shadow-sm">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl">
                 🔍
               </div>
-              <h3 className="text-lg font-bold text-slate-800">No items found</h3>
-              <p className="mt-1 text-sm text-slate-500 max-w-sm mx-auto">
-                No matching lost or found reports for the selected filters. Be the first to report an item!
+              <h2 className="mt-5 text-xl font-bold text-gray-900">
+                No items reported
+              </h2>
+              <p className="mt-2 text-sm text-gray-500">
+                No matching lost or found reports found. Be the first to report an item!
               </p>
               <button
                 onClick={() => {
                   if (!user) navigate("/login");
                   else setIsModalOpen(true);
                 }}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
               >
                 + Report Item
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((item) => {
                 const isOwner = user?._id && item.user?._id && user._id === item.user._id;
                 const isLost = item.type === "lost";
 
                 return (
-                  <div
+                  <article
                     key={item._id}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md hover:border-slate-300"
+                    className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"
                   >
                     <div>
-                      {/* Image or Category Placeholder */}
-                      <div className="relative h-48 w-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                      {/* Image / Category Visual */}
+                      <div className="relative h-52 overflow-hidden bg-gray-100 flex items-center justify-center">
                         {item.images && item.images.length > 0 ? (
                           <img
                             src={item.images[0].url}
                             alt={item.title}
-                            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                           />
                         ) : (
-                          <div className="text-4xl text-slate-300">
+                          <div className="flex flex-col items-center justify-center text-4xl text-gray-300">
                             {item.category === "electronics"
                               ? "📱"
                               : item.category === "cards-ids"
@@ -497,101 +548,100 @@ export default function CampusHub() {
                               ? "🔑"
                               : item.category === "books-notes"
                               ? "📚"
+                              : item.category === "clothing"
+                              ? "👕"
                               : "📦"}
+                            <span className="mt-2 text-xs font-medium text-gray-400 capitalize">
+                              {item.category.replace("-", " ")}
+                            </span>
                           </div>
                         )}
 
-                        {/* Lost / Found Badge */}
-                        <div className="absolute top-3 left-3">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide shadow-sm backdrop-blur ${
-                              isLost
-                                ? "bg-rose-500/90 text-white"
-                                : "bg-emerald-600/90 text-white"
-                            }`}
-                          >
-                            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                            {item.type}
-                          </span>
-                        </div>
+                        {/* Type Badge on Top-Left */}
+                        <span
+                          className={`absolute left-3 top-3 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-sm backdrop-blur ${
+                            isLost
+                              ? "bg-red-50 text-red-600 border border-red-200/80"
+                              : "bg-blue-50 text-blue-700 border border-blue-200/80"
+                          }`}
+                        >
+                          {item.type}
+                        </span>
 
-                        {/* Resolved Badge */}
+                        {/* Resolved Badge on Top-Right */}
                         {item.status === "resolved" && (
-                          <div className="absolute top-3 right-3">
-                            <span className="rounded-full bg-slate-900/80 px-2.5 py-1 text-[11px] font-semibold text-emerald-400 backdrop-blur">
-                              ✓ Reunited / Resolved
-                            </span>
-                          </div>
+                          <span className="absolute right-3 top-3 rounded-lg bg-gray-900/80 px-2.5 py-1 text-xs font-semibold text-green-400 backdrop-blur">
+                            ✓ Reunited
+                          </span>
                         )}
                       </div>
 
                       {/* Content */}
                       <div className="p-5">
-                        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                        <div className="flex items-center justify-between text-xs text-gray-400">
                           <span className="font-semibold uppercase tracking-wider text-blue-600">
                             {item.category.replace("-", " ")}
                           </span>
                           <span>{new Date(item.date).toLocaleDateString()}</span>
                         </div>
 
-                        <h3 className="text-base font-bold text-slate-900 line-clamp-1 mb-2">
+                        <h3 className="mt-2 text-base font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition">
                           {item.title}
                         </h3>
 
-                        <p className="text-xs text-slate-600 line-clamp-2 mb-4 leading-relaxed">
+                        <p className="mt-1.5 text-sm text-gray-500 line-clamp-2 leading-relaxed">
                           {item.description}
                         </p>
 
-                        <div className="flex flex-col gap-1.5 text-xs text-slate-500 border-t border-slate-100 pt-3">
+                        <div className="mt-4 space-y-1.5 border-t border-gray-100 pt-3 text-xs text-gray-500">
                           <div className="flex items-center gap-1.5">
-                            <span>📍</span>
-                            <span className="font-medium text-slate-700 truncate">
+                            <span className="text-gray-400">📍</span>
+                            <span className="font-medium text-gray-700 truncate">
                               {item.location}
                             </span>
                           </div>
 
                           {item.college?.name && (
-                            <div className="flex items-center gap-1.5 text-slate-400">
+                            <div className="flex items-center gap-1.5 text-gray-400">
                               <span>🏛️</span>
                               <span className="truncate">{item.college.name}</span>
                             </div>
                           )}
 
                           {item.securityQuestion && (
-                            <div className="flex items-center gap-1 text-amber-700 bg-amber-50 rounded-lg p-2 mt-1">
-                              <span>🔒</span>
-                              <span className="truncate font-medium">
-                                Proof question set by finder
-                              </span>
+                            <div className="mt-2 rounded-lg bg-blue-50/70 p-2 text-blue-800">
+                              <span className="font-semibold">🔒 Proof required to claim</span>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Footer Actions */}
-                    <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                    {/* Card Footer */}
+                    <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/80 px-5 py-3.5">
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <div className="h-7 w-7 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                           {item.user?.name?.charAt(0) || "U"}
                         </div>
-                        <span className="text-xs font-medium text-slate-700 truncate">
+                        <span className="truncate text-xs font-medium text-gray-700">
                           {item.user?.name}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {isOwner ? (
                           <>
                             <button
+                              type="button"
                               onClick={() => handleStatusToggle(item._id, item.status)}
-                              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                              className="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-100"
                             >
                               {item.status === "open" ? "Mark Resolved" : "Re-open"}
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleDeleteItem(item._id)}
-                              className="p-1 text-slate-400 hover:text-rose-600 transition"
+                              className="text-gray-400 hover:text-red-600 transition"
                               title="Delete Report"
                             >
                               🗑️
@@ -599,14 +649,13 @@ export default function CampusHub() {
                           </>
                         ) : (
                           <button
+                            type="button"
                             onClick={() => {
                               if (!user) navigate("/login");
                               else setClaimModalItem(item);
                             }}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg text-white shadow-sm transition active:scale-95 ${
-                              isLost
-                                ? "bg-emerald-600 hover:bg-emerald-700"
-                                : "bg-blue-600 hover:bg-blue-700"
+                            className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95 ${
+                              isLost ? "bg-blue-600" : "bg-blue-600"
                             }`}
                           >
                             {isLost ? "I Found This!" : "This is Mine!"}
@@ -614,7 +663,7 @@ export default function CampusHub() {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
@@ -624,95 +673,94 @@ export default function CampusHub() {
           // FREECYCLE ZERO-RUPEE HUB
           // ========================
           freecycleItems.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-3xl mb-4">
+            <div className="rounded-2xl border border-gray-200 bg-white px-6 py-20 text-center shadow-sm">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl">
                 🎁
               </div>
-              <h3 className="text-lg font-bold text-slate-800">No Freecycle items yet</h3>
-              <p className="mt-1 text-sm text-slate-500 max-w-sm mx-auto">
-                Got old textbooks, lab coats, drafters, or notes you no longer need? Give them away to support fellow students!
+              <h2 className="mt-5 text-xl font-bold text-gray-900">
+                No Freecycle items available
+              </h2>
+              <p className="mt-2 text-sm text-gray-500">
+                Have books, drafters, or notes you no longer need? Give them away to support fellow students!
               </p>
               <Link
                 to="/create-listing"
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                className="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
               >
                 + Give Away an Item (₹0)
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {freecycleItems.map((item) => (
-                <div
+                <article
                   key={item._id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md hover:border-emerald-300"
+                  onClick={() => navigate(`/listings/${item._id}`)}
+                  className="group flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"
                 >
                   <div>
                     {/* Image */}
-                    <div className="relative h-48 w-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                    <div className="relative h-52 overflow-hidden bg-gray-100 flex items-center justify-center">
                       {item.images && item.images.length > 0 ? (
                         <img
                           src={item.images[0].url}
                           alt={item.title}
-                          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="text-5xl text-emerald-300">🎁</div>
+                        <div className="text-5xl text-blue-300">🎁</div>
                       )}
 
                       {/* ₹0 FREE Badge */}
-                      <div className="absolute top-3 left-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-white shadow-md">
-                          ₹0 FREE
-                        </span>
-                      </div>
+                      <span className="absolute left-3 top-3 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm backdrop-blur">
+                        ₹0 Free
+                      </span>
 
                       {/* Condition badge */}
-                      <div className="absolute top-3 right-3">
-                        <span className="rounded-full bg-slate-900/70 px-2.5 py-1 text-xs font-semibold text-white capitalize backdrop-blur">
-                          {item.condition}
-                        </span>
-                      </div>
+                      <span className="absolute right-3 top-3 rounded-lg bg-gray-900/80 px-2.5 py-1 text-xs font-semibold capitalize text-white backdrop-blur">
+                        {item.condition}
+                      </span>
                     </div>
 
-                    {/* Details */}
+                    {/* Content */}
                     <div className="p-5">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
                         {item.category}
                       </span>
 
-                      <h3 className="text-base font-bold text-slate-900 line-clamp-1 mt-1 mb-2">
+                      <h3 className="mt-2 text-base font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition">
                         {item.title}
                       </h3>
 
-                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-4">
+                      <p className="mt-1.5 text-sm text-gray-500 line-clamp-2 leading-relaxed">
                         {item.description}
                       </p>
 
-                      <div className="text-xs text-slate-400">
-                        Campus: <span className="text-slate-600 font-medium">{item.college?.name}</span>
+                      <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-400">
+                        Campus:{" "}
+                        <span className="font-medium text-gray-700">
+                          {item.college?.name}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/80 px-5 py-3.5">
                     <div className="flex items-center gap-2 overflow-hidden">
-                      <div className="h-7 w-7 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                         {item.seller?.name?.charAt(0) || "U"}
                       </div>
-                      <span className="text-xs font-medium text-slate-700 truncate">
+                      <span className="truncate text-xs font-medium text-gray-700">
                         {item.seller?.name}
                       </span>
                     </div>
 
-                    <Link
-                      to={`/listings/${item._id}`}
-                      className="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
-                    >
+                    <span className="rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700">
                       Claim Item →
-                    </Link>
+                    </span>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           )
@@ -722,21 +770,21 @@ export default function CampusHub() {
         {/* REPORT MODAL */}
         {/* ==================================================== */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-            <div className="relative w-full max-w-xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl my-8">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm overflow-y-auto">
+            <div className="relative w-full max-w-xl rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xl my-8">
 
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition"
+                className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition"
               >
                 ✕
               </button>
 
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">
+              <h2 className="text-2xl font-bold tracking-tight text-gray-900">
                 Report Campus Item
               </h2>
-              <p className="text-xs text-slate-500 mb-6">
-                Post details to help reunite this item with its student owner.
+              <p className="mt-1 text-sm text-gray-500 mb-6">
+                Fill in the details to help reunite this item with its student owner.
               </p>
 
               {formError && (
@@ -746,7 +794,7 @@ export default function CampusHub() {
               )}
 
               {formSuccess && (
-                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
+                <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-700">
                   {formSuccess}
                 </div>
               )}
@@ -755,61 +803,63 @@ export default function CampusHub() {
 
                 {/* Type Selection */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
                     Report Type
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setReportForm({ ...reportForm, type: "lost" })}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-bold transition ${
+                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold transition ${
                         reportForm.type === "lost"
-                          ? "border-rose-500 bg-rose-50 text-rose-700 ring-2 ring-rose-200"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                          ? "border-red-500 bg-red-50 text-red-700 ring-2 ring-red-100"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      <span>🔴</span> I Lost Something
+                      <span className="h-2 w-2 rounded-full bg-red-500" />
+                      I Lost Something
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setReportForm({ ...reportForm, type: "found" })}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-bold transition ${
+                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold transition ${
                         reportForm.type === "found"
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                          ? "border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
                       }`}
                     >
-                      <span>🟢</span> I Found Something
+                      <span className="h-2 w-2 rounded-full bg-blue-500" />
+                      I Found Something
                     </button>
                   </div>
                 </div>
 
                 {/* Title */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Item Name / Title *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Boat Airdopes Case (Black) or College ID Card"
+                    placeholder="e.g. Casio fx-991EX Calculator or Blue Student ID Card"
                     value={reportForm.title}
                     onChange={(e) => setReportForm({ ...reportForm, title: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                   />
                 </div>
 
                 {/* Category & Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Category *
                     </label>
                     <select
                       value={reportForm.category}
                       onChange={(e) => setReportForm({ ...reportForm, category: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                     >
                       <option value="electronics">📱 Electronics</option>
                       <option value="cards-ids">🪪 Cards & IDs</option>
@@ -822,7 +872,7 @@ export default function CampusHub() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Date {reportForm.type === "lost" ? "Lost" : "Found"} *
                     </label>
                     <input
@@ -830,63 +880,63 @@ export default function CampusHub() {
                       required
                       value={reportForm.date}
                       onChange={(e) => setReportForm({ ...reportForm, date: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                     />
                   </div>
                 </div>
 
                 {/* Location */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Location On Campus *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Library 2nd floor silent study room, or Main Canteen"
+                    placeholder="e.g. Central Library 2nd floor, or Main Canteen"
                     value={reportForm.location}
                     onChange={(e) => setReportForm({ ...reportForm, location: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Detailed Description *
                   </label>
                   <textarea
                     rows={3}
                     required
-                    placeholder="Describe distinguishing marks, scratches, color, stickers..."
+                    placeholder="Describe distinguishing marks, stickers, color, or condition..."
                     value={reportForm.description}
                     onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                   />
                 </div>
 
                 {/* Security Question (Only for Found items) */}
                 {reportForm.type === "found" && (
-                  <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3">
-                    <label className="block text-xs font-bold text-amber-900 mb-1">
-                      🔒 Ownership Verification Question (Recommended)
+                  <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4">
+                    <label className="block text-xs font-bold text-blue-900 mb-1">
+                      🔒 Ownership Proof Question (Recommended)
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g., What sticker is on the back? / What's the brand written inside?"
+                      placeholder="e.g., What sticker is on the back? / What name is written inside?"
                       value={reportForm.securityQuestion}
                       onChange={(e) => setReportForm({ ...reportForm, securityQuestion: e.target.value })}
-                      className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-500"
+                      className="w-full rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-xs outline-none focus:border-blue-500"
                     />
-                    <p className="text-[11px] text-amber-700 mt-1">
-                      Prevents strangers from falsely claiming valuable items.
+                    <p className="mt-1 text-[11px] text-blue-700">
+                      The claimant must answer this question to prove the item is theirs.
                     </p>
                   </div>
                 )}
 
                 {/* Photo Upload */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Upload Photos (Max 3, Optional)
                   </label>
                   <input
@@ -894,17 +944,17 @@ export default function CampusHub() {
                     accept="image/*"
                     multiple
                     onChange={handleImageChange}
-                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full text-xs text-gray-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                   />
                   {imagePreviews.length > 0 && (
                     <div className="flex gap-2 mt-2">
                       {imagePreviews.map((src, i) => (
-                        <div key={i} className="relative h-14 w-14 rounded-lg overflow-hidden border border-slate-200">
+                        <div key={i} className="relative h-14 w-14 rounded-xl overflow-hidden border border-gray-200">
                           <img src={src} alt="preview" className="h-full w-full object-cover" />
                           <button
                             type="button"
                             onClick={() => removeImage(i)}
-                            className="absolute top-0 right-0 bg-slate-900/70 text-white rounded-bl px-1 text-[10px]"
+                            className="absolute top-0 right-0 bg-gray-900/80 text-white rounded-bl px-1.5 text-[10px]"
                           >
                             ✕
                           </button>
@@ -914,19 +964,19 @@ export default function CampusHub() {
                   )}
                 </div>
 
-                {/* Submit */}
-                <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                {/* Actions */}
+                <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                    className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-100"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-md hover:bg-blue-700 disabled:opacity-60"
+                    className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
                   >
                     {submitting ? "Submitting..." : "Submit Report"}
                   </button>
@@ -941,28 +991,28 @@ export default function CampusHub() {
         {/* CLAIM / CONTACT MODAL */}
         {/* ==================================================== */}
         {claimModalItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+            <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xl">
               <button
                 onClick={() => setClaimModalItem(null)}
-                className="absolute top-5 right-5 text-slate-400 hover:text-slate-600"
+                className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition"
               >
                 ✕
               </button>
 
-              <h2 className="text-xl font-bold text-slate-900 mb-1">
+              <h2 className="text-xl font-bold tracking-tight text-gray-900">
                 {claimModalItem.type === "lost" ? "Report Found Item" : "Claim This Item"}
               </h2>
-              <p className="text-xs text-slate-500 mb-4">
-                Regarding: <span className="font-semibold text-slate-800">{claimModalItem.title}</span>
+              <p className="mt-1 text-xs text-gray-500 mb-4">
+                Regarding: <span className="font-semibold text-gray-800">{claimModalItem.title}</span>
               </p>
 
               {claimModalItem.securityQuestion && (
-                <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 mb-4">
-                  <span className="block text-xs font-bold text-amber-900">
-                    🔒 Proof Question:
+                <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 mb-4">
+                  <span className="block text-xs font-bold text-blue-950 mb-1">
+                    🔒 Proof Question from Finder:
                   </span>
-                  <span className="text-xs text-amber-800">
+                  <span className="text-xs text-blue-900">
                     {claimModalItem.securityQuestion}
                   </span>
                 </div>
@@ -976,16 +1026,16 @@ export default function CampusHub() {
 
               <form onSubmit={handleClaimSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Your Message / Answer *
                   </label>
                   <textarea
                     rows={4}
                     required
-                    placeholder="Explain how to verify it's yours (or where you found it) and how you can meet on campus to hand it over."
+                    placeholder="Provide your answer to verify ownership (or details on where you found it) and arrange a safe campus handover."
                     value={claimMessage}
                     onChange={(e) => setClaimMessage(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                   />
                 </div>
 
@@ -993,14 +1043,14 @@ export default function CampusHub() {
                   <button
                     type="button"
                     onClick={() => setClaimModalItem(null)}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                    className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={claimLoading}
-                    className="px-5 py-2 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
+                    className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
                   >
                     {claimLoading ? "Sending..." : "Send to Poster"}
                   </button>
@@ -1010,7 +1060,7 @@ export default function CampusHub() {
           </div>
         )}
 
-      </div>
+      </main>
     </div>
   );
 }
