@@ -1,0 +1,11 @@
+/* Global CSS variables for the Student Marketplace UI */
+:root {
+  /* Primary brand accent color (used for primary buttons, links, etc.) */
+  --accent: #2563eb; /* blue-600 */
+  /* Background color for hover/active states of accent elements */
+  --accent-bg: #e0f2fe; /* blue-100 */
+  /* Border color for outline variants */
+  --border: #d1d5db; /* gray-300 */
+  /* Text color used on hover/focus states */
+  --text-h: #111827; /* gray-900 */
+}
