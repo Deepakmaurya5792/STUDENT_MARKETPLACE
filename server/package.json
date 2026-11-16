@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  
-"scripts": {
-  "dev": "nodemon index.js",
-  "start": "node index.js",
-  "seed:colleges": "node seedColleges.js"
-},
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "seed:colleges": "node seedColleges.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -24,6 +23,7 @@
     "mongoose": "^9.11.3",
     "multer": "^2.5.0",
     "nodemon": "^1.14.10",
+    "sharp": "^0.35.5",
     "socket.io": "^4.8.4"
   }
 }

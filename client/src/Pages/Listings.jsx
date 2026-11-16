@@ -156,40 +156,67 @@ const Listings = () => {
 
       {/* HERO SECTION */}
 
-      <section className="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-5 py-14 text-white sm:py-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-5 py-12 text-white sm:py-16 lg:py-16">
+        {/* Ambient background glow orbs */}
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-400/25 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 right-1/4 h-80 w-80 rounded-full bg-indigo-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute left-10 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-blue-300/15 blur-2xl" />
+
         <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10">
 
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-wide text-blue-50">
-              <span className="h-2 w-2 rounded-full bg-green-400" />
-              YOUR CAMPUS MARKETPLACE
-            </span>
-
-            <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Find what you need.
-              <br />
-              <span className="text-blue-200">
-                Sell what you don't.
+            {/* Left Content Column */}
+            <div className="z-10 lg:col-span-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-wide text-blue-50 backdrop-blur-sm">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                YOUR CAMPUS MARKETPLACE
               </span>
-            </h1>
 
-            <p className="mt-5 max-w-xl text-base leading-7 text-blue-100 sm:text-lg">
-              Discover great deals, buy and sell products,
-              and connect with students across colleges.
-            </p>
+              <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                Find what you need.
+                <br />
+                <span className="text-blue-200">
+                  Sell what you don't.
+                </span>
+              </h1>
 
-            <button
-              onClick={() =>
-                document
-                  .getElementById("marketplace-products")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-              className="mt-8 rounded-xl bg-white px-6 py-3 font-semibold text-blue-700 shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-50"
-            >
-              Explore Marketplace →
-            </button>
+              <p className="mt-5 max-w-xl text-base leading-7 text-blue-100 sm:text-lg">
+                Discover great deals, buy and sell products, rent items for short term use, and connect with students across colleges.
+              </p>
+
+              <button
+                onClick={() =>
+                  document
+                    .getElementById("marketplace-products")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+                className="mt-8 rounded-xl bg-white px-6 py-3.5 font-semibold text-blue-700 shadow-xl transition hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-2xl active:scale-95"
+              >
+                Explore Marketplace →
+              </button>
+            </div>
+
+            {/* Right Illustration Column - Seamlessly Merged into Gradient */}
+            <div className="relative flex items-center justify-center lg:col-span-6 lg:justify-end">
+              {/* Soft ambient backlight behind 3D render */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+              </div>
+
+              <div className="relative w-full max-w-lg lg:max-w-2xl xl:max-w-3xl flex items-center justify-center lg:justify-end">
+                <img
+                  src="/StudentMarket College Essentials Hub.png"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/campus-hero.png";
+                  }}
+                  alt="StudentMarket College Essentials Hub"
+                  className="w-full h-auto max-h-[380px] sm:max-h-[440px] lg:max-h-[480px] object-contain drop-shadow-[0_20px_45px_rgba(0,0,0,0.35)] transition duration-700 hover:scale-105"
+                />
+              </div>
+            </div>
+
           </div>
-
         </div>
       </section>
 
