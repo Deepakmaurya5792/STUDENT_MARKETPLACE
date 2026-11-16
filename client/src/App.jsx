@@ -57,13 +57,19 @@ const Navbar = () => {
 
         {/* LOGO */}
 
-        <Link to="/listings" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white">
-            S
-          </div>
+        <Link to="/listings" className="group flex items-center gap-2.5">
+          <img
+            src="/logo.png"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/Neon Campus Cart Logo(1).png";
+            }}
+            alt="StudentMarket Logo"
+            className="h-10 w-10 object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+          />
 
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-gray-900">
+            <h1 className="text-lg font-bold tracking-tight text-gray-900 transition-colors group-hover:text-blue-600">
               Student<span className="text-blue-600">Market</span>
             </h1>
             <p className="text-[10px] font-medium tracking-widest text-gray-400">
