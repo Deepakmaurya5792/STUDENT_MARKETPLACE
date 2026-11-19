@@ -10,18 +10,18 @@ import {
 
 import { useAuth } from "./context/AuthContext";
 
-import ListingDetails from "./pages/ListingDetails";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import CreateListing from "./pages/CreateListing";
-import Listings from "./pages/Listings";
-import Profile from "./pages/Profile";
-import MyListings from "./pages/MyListings";
-import EditListing from "./pages/EditListing";
-import Chat from "./pages/Chat";
-import Conversations from "./pages/Conversations";
-import WishlistPage from "./pages/WishlistPage";
+import ListingDetails from "./Pages/ListingDetails";
+import Register from "./Pages/Register";
+import Login from "./Pages/Login";
+import Dashboard from "./Pages/Dashboard";
+import CreateListing from "./Pages/CreateListing";
+import Listings from "./Pages/Listings";
+import Profile from "./Pages/Profile";
+import MyListings from "./Pages/MyListings";
+import EditListing from "./Pages/EditListing";
+import Chat from "./Pages/Chat";
+import Conversations from "./Pages/Conversations";
+import WishlistPage from "./Pages/WishlistPage";
 import CampusHub from "./Pages/CampusHub";
 
 import NotificationBell from "./components/NotificationBell";
