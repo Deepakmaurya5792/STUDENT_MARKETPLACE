@@ -2,11 +2,21 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import "dotenv/config";
+import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from server dir first, fallback to root
+dotenv.config({ path: path.join(__dirname, ".env") });
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 import connectDB from "./config/db.js";
 import User from "./models/User.js";
@@ -26,8 +36,27 @@ import lostFoundRoutes from "./routes/lostFoundRoutes.js";
 import authMiddleware from "./middleware/authMiddleware.js";
 
 const app = express();
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 const httpServer = createServer(app);
+
+// Flexible CORS configuration for local development, Vercel/Netlify, or same-origin
+const defaultOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5000",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5000",
+];
+
+const configuredOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((url) => url.trim().replace(/\/+$/, ""))
+  : [];
+
+const allowedOrigins = [...new Set([...defaultOrigins, ...configuredOrigins])];
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // Allow mobile apps, curl, or same-origin requests
+  const clean = origin.replace(/\/+$/, "");
+  return allowedOrigins.includes(clean) || allowedOrigins.includes("*") || process.env.NODE_ENV !== "production";
+};
 
 // ============================================
 // SOCKET.IO CONFIGURATION
@@ -35,7 +64,9 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
     credentials: true,
   },
 });
@@ -189,7 +220,9 @@ io.on("connection", (socket) => {
 
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
     credentials: true,
   })
 );
@@ -246,6 +279,24 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/lost-found", lostFoundRoutes);
+
+// ============================================
+// SERVE PRODUCTION FRONTEND (STATIC ASSETS)
+// ============================================
+
+const clientDistPath = path.join(__dirname, "../client/dist");
+
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+
+  // Express 5 wildcard parameter syntax for client-side React Router fallback
+  app.get("{*path}", (req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 // ============================================
 // SERVER CONFIGURATION
